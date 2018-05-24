@@ -1,0 +1,38 @@
+{
+  "name": "pxt-cloud",
+  "version": "0.1.0",
+  "description": "Cloud support for [Microsoft MakeCode (PXT)]",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muddytummy/pxt-cloud.git"
+  },
+  "author": "Matthew Tebbs",
+  "publisher": "MuddyTummy Software LLC",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/muddytummy/pxt-cloud/issues"
+  },
+  "homepage": "https://github.com/muddytummy/pxt-cloud#readme",
+  "dependencies": {
+    "@types/node": "^8.10.17",
+    "@types/socket.io": "^1.4.33",
+    "@types/socket.io-client": "^1.4.32",
+    "debug": "^3.1.0",
+    "dotenv": "^5.0.1",
+    "socket.io": "^2.1.1"
+  },
+  "devDependencies": {
+    "tslint": "^5.10.0",
+    "typescript": "^2.8.3"
+  },
+  "engines": {
+    "node": ">=8.11.0",
+    "npm": ">=5.6.0"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsc",
+    "startcloud": "node -r dotenv/config dist/app.js"
+  }
+}

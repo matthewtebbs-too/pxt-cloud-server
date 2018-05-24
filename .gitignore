@@ -1,0 +1,8 @@
+.env
+built
+dist
+gh-pages
+node_modules
+projects
+temp
+tmp
