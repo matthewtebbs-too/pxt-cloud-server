@@ -5,12 +5,8 @@
 
     "declaration": true,
 
-    "outDir": "dist",
+    "outDir": "built",
     
-    "newLine": "lf",
-
-    "sourceMap": true,
-
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
