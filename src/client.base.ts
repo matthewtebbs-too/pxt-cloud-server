@@ -6,7 +6,7 @@
 
 import * as SocketIO from 'socket.io-client';
 
-import { Server } from './server';
+import { Config } from './config';
 
 const debug = require('debug')('pxt-cloud:client');
 
@@ -26,7 +26,7 @@ export abstract class Client {
     }
 
     constructor(uri?: string, nsp?: string) {
-        this.attach(SocketIO(`${uri || Server.defaultUri || ''}/${nsp || ''}`));
+        this.attach(SocketIO(`${uri || Config.defaultUri || ''}/${nsp || ''}`));
     }
 
     public attach(io: SocketIOClient.Socket) {

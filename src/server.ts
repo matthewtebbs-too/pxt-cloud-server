@@ -8,16 +8,11 @@ import * as FS from 'fs';
 import * as Http from 'http';
 import * as Path from 'path';
 
+import { Config } from './config';
+
 const debug = require('debug')('pxt-cloud:server');
 
 export class Server {
-    public static defaultConfig = {
-        hostname: process.env.PXT_CLOUD_HOSTNAME || 'localhost',
-        port: process.env.PXT_CLOUD_PORT ? parseInt(process.env.PXT_CLOUD_PORT, 10) : 3000,
-    };
-
-    public static defaultUri = `http://${Server.defaultConfig.hostname}:${Server.defaultConfig.port}`;
-
     private static _handler(request: Http.IncomingMessage, response: Http.ServerResponse) {
         FS.readFile(Path.join(__dirname, 'public') + '/index.html', (error: NodeJS.ErrnoException, data: Buffer) => {
             if (error) {
@@ -35,7 +30,7 @@ export class Server {
         return this._server;
     }
 
-    constructor(port: number = Server.defaultConfig.port, hostname: string = Server.defaultConfig.hostname) {
+    constructor(port: number = Config.port, hostname: string = Config.hostname) {
         this._server.listen(port, hostname, () => debug(`server listening on ${hostname} at port ${port}`));
     }
 
