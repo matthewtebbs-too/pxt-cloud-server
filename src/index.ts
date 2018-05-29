@@ -5,5 +5,6 @@
 */
 
 export * from './config';
-export * from './client.base';
-export * from './client.world';
+export * from './endpoint.base';
+export * from './endpoint.world';
+export * from './server';

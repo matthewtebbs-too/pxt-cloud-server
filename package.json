@@ -2,12 +2,16 @@
   "name": "pxt-cloud",
   "version": "0.1.0",
   "description": "Cloud support for [Microsoft MakeCode (PXT)]",
-  "main": "index.js",
+  "main": "./lib/index.js",
+  "types": "./lib/typings/index.d.ts",
+  "files": [
+    "lib/"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/muddytummy/pxt-cloud.git"
   },
-  "author": "Matthew Tebbs",
+  "author": "Matthew Tebbs <matthew@muddytummy.com>",
   "publisher": "MuddyTummy Software LLC",
   "license": "MIT",
   "bugs": {
@@ -17,31 +21,29 @@
   "dependencies": {
     "@types/node": "^8.10.17",
     "@types/socket.io": "^1.4.33",
-    "@types/socket.io-client": "^1.4.32",
     "debug": "^3.1.0",
     "dotenv": "^5.0.1",
-    "gulp-rename": "^1.2.3",
     "socket.io": "^2.1.1"
   },
   "devDependencies": {
-    "browserify": "^16.2.2",
+    "del": "^3.0.0",
     "gulp": "^4.0.0",
-    "gulp-sourcemaps": "^2.6.4",
-    "gulp-streamify": "^1.0.2",
+    "gulp-rollup": "^2.16.2",
     "gulp-typescript": "^4.0.2",
-    "gulp-uglify": "^3.0.0",
     "merge2": "^1.2.2",
+    "rollup": "^0.59.4",
+    "rollup-plugin-commonjs": "^8.4.1",
+    "rollup-plugin-node-resolve": "^3.0.0",
     "tslint": "^5.10.0",
-    "typescript": "^2.8.3",
-    "vinyl-source-stream": "^2.0.0"
+    "typescript": "^2.8.3"
   },
   "engines": {
     "node": ">=8.11.0",
     "npm": ">=5.6.0"
   },
   "scripts": {
-    "clean": "rm -rf dist",
-    "build": "tsc",
-    "startcloud": "node -r dotenv/config dist/app.js"
+    "clean": "gulp clean",
+    "start": "gulp bundle",
+    "test": "tsc -project test/ && node -r dotenv/config built.test/app.js"
   }
 }

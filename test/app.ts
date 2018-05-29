@@ -4,9 +4,6 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-// import { WorldClient } from './client.world';
-// import { WorldEndpoint } from './endpoint.world';
-// import { Server } from './server';
+import { Server, WorldEndpoint } from '../lib';
 
-// const endpointWorld = new WorldEndpoint(new Server());
-// const clientWorld = new WorldClient();
+const endpointWorld = new WorldEndpoint(new Server());
