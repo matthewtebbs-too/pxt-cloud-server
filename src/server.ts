@@ -8,7 +8,7 @@ import * as FS from 'fs';
 import * as Http from 'http';
 import * as Path from 'path';
 
-import { Config } from './config';
+import { ServerConfig } from './server.config';
 
 const debug = require('debug')('pxt-cloud:server');
 
@@ -30,7 +30,7 @@ export class Server {
         return this._server;
     }
 
-    constructor(port: number = Config.port, hostname: string = Config.hostname) {
+    constructor(port: number = ServerConfig.port, hostname: string = ServerConfig.hostname) {
         this._server.listen(port, hostname, () => debug(`server listening on ${hostname} at port ${port}`));
     }
 
