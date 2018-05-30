@@ -27,31 +27,12 @@ gulp.task('build', function () {
     ]);
 });
 
-/* Reference: https://medium.com/@kelin2025/so-you-wanna-use-es6-modules-714f48b3a953 */
-const commonjs = require('rollup-plugin-commonjs');
-const resolve = require('rollup-plugin-node-resolve');
-const rollup = require('gulp-rollup');
-
-const dependencies = Object.keys(require('./package.json').dependencies).concat('fs', 'http', 'path');
+const rollup = require('rollup-stream');
+const source = require('vinyl-source-stream');
 
 gulp.task('bundle', function () {
-    const bundle = gulp.src('./built/**/*.js');
-
-    const result = bundle.pipe(rollup({
-        input: './built/index.js',
-        output: {
-            file: 'index.js',
-            format: 'cjs',
-            name: 'pxtcloud',
-            sourcemap: false,
-        },
-        plugins: [
-            commonjs(),
-            resolve()
-        ],
-        external: dependencies,
-        interop: false,
-    }));
+    const result = rollup('rollup.config.js')
+        .pipe(source('index.js'));
 
     return merge([
         result.pipe(gulp.dest('./lib/')),
