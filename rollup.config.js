@@ -13,6 +13,8 @@ const resolve = require('rollup-plugin-node-resolve');
 const dependencies = Object.keys(require('./package.json').dependencies).concat('fs', 'http', 'path');
 
 export default {
+    rollup: require('rollup'),
+
     input: './built/index.js',
     output: {
         format: 'cjs',
@@ -23,7 +25,6 @@ export default {
         commonjs(),
         resolve()
     ],
-    rollup: require('rollup'),
-    external: dependencies,
+    external: dependencies
 };
   
