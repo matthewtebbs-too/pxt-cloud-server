@@ -36,7 +36,7 @@ gulp.task('bundle', function () {
 
     return merge([
         result.pipe(gulp.dest('./lib/')),
-        gulp.src('./built/typings/**').pipe(gulp.dest('./lib/typings'))
+        gulp.src('./built/typings/**').pipe(gulp.dest('./lib'))
     ]);
 });
 
