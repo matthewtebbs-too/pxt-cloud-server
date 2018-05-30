@@ -6,12 +6,12 @@
 
 'use strict';
 
-const gulp = require('gulp');
-const del = require('del');
-const merge = require('merge2');
+var gulp = require('gulp');
+var del = require('del');
+var merge = require('merge2');
 
-const ts = require('gulp-typescript');
-const tsProject = ts.createProject('tsconfig.json');
+var ts = require('gulp-typescript');
+var tsProject = ts.createProject('tsconfig.json');
 
 gulp.task('clean', function (done) {
     del(['./built', './built.test', './lib']).then(paths => done());
@@ -27,11 +27,11 @@ gulp.task('build', function () {
     ]);
 });
 
-const rollup = require('rollup-stream');
-const source = require('vinyl-source-stream');
+var rollup = require('rollup-stream');
+var source = require('vinyl-source-stream');
 
 gulp.task('bundle', function () {
-    const result = rollup('rollup.config.js')
+    var result = rollup('rollup.config.js')
         .pipe(source('index.js'));
 
     return merge([
