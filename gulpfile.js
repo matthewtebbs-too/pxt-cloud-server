@@ -45,6 +45,7 @@ var rollup = require('rollup-stream');
 gulp.task('bundle', function () {
     var result = rollup('rollup.config.js')
         .pipe(source('index.js'))
+        .pipe(buffer())
         .pipe(gulp.dest(LIB));
 
     return merge([
