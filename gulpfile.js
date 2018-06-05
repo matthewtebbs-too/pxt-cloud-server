@@ -13,7 +13,8 @@ var BUILT = _BUILT.concat('/');
 var BUILT_TEST = _BUILT.concat('.test/');
 var BUILT_TYPINGS = _BUILT.concat('/typings/');
 
-var DST = './lib/';
+var DST = './dist/';
+var LIB = './lib/';
 
 var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
@@ -26,7 +27,7 @@ var ts = require('gulp-typescript');
 var tsProject = ts.createProject('tsconfig.json');
 
 gulp.task('clean', function (done) {
-    del([BUILT, BUILT_TEST, DST]).then(paths => done());
+    del([BUILT, BUILT_TEST, DST, LIB]).then(paths => done());
 });
 
 gulp.task('build', function () {
@@ -44,11 +45,11 @@ var rollup = require('rollup-stream');
 gulp.task('bundle', function () {
     var result = rollup('rollup.config.js')
         .pipe(source('index.js'))
-        .pipe(gulp.dest(DST));
+        .pipe(gulp.dest(LIB));
 
     return merge([
         result,
-        gulp.src(BUILT_TYPINGS.concat('**')).pipe(gulp.dest(DST))
+        gulp.src(BUILT_TYPINGS.concat('**')).pipe(gulp.dest(LIB))
     ]);
 });
 
