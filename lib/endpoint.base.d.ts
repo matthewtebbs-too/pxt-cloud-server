@@ -1,4 +1,3 @@
-/// <reference types="socket.io" />
 import * as SocketIO from 'socket.io';
 export declare abstract class Endpoint {
     private _io;

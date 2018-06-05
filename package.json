@@ -19,9 +19,9 @@
   },
   "homepage": "https://github.com/muddytummy/pxt-cloud#readme",
   "dependencies": {
-    "@types/node": "^8.10.17",
+    "@types/node": "^8.10.18",
     "@types/redis": "^2.8.6",
-    "@types/socket.io": "^1.4.33",
+    "@types/socket.io": "^1.4.34",
     "debug": "^3.1.0",
     "dotenv": "^5.0.1",
     "http-shutdown": "^1.2.0",
@@ -38,7 +38,7 @@
     "rollup-plugin-node-resolve": "^3.0.0",
     "rollup-stream": "^1.24.1",
     "tslint": "^5.10.0",
-    "typescript": "^2.8.4",
+    "typescript": "^2.9.1",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
   },
@@ -48,6 +48,7 @@
   },
   "scripts": {
     "clean": "gulp clean",
+    "build": "gulp build",
     "start": "gulp",
     "test": "tsc -project test/ && node -r dotenv/config built.test/app.js"
   }
