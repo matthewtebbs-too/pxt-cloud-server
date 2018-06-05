@@ -6,4 +6,4 @@
 
 import { Server, WorldEndpoint } from '../lib';
 
-const endpointWorld = new WorldEndpoint(new Server());
+const endpointWorld = new WorldEndpoint(Server.singleton);
