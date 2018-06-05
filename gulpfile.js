@@ -6,7 +6,8 @@
 
 'use strict';
 
-var SRC = './src/';
+var _SRC = './src';
+var SRC = _SRC.concat('/');
 
 var _BUILT = './built';
 var BUILT = _BUILT.concat('/');
