@@ -1,7 +1,11 @@
-/// <reference types="socket.io" />
+import { UserData, UserId, WorldAPI } from './api.world';
 import { Endpoint } from './endpoint.base';
-export declare class WorldEndpoint extends Endpoint {
+export declare const keys: {
+    userId: (id: string) => string;
+    users: string;
+};
+export declare class WorldEndpoint extends Endpoint implements WorldAPI {
     constructor(server: any);
-    protected _onConnection(socket: SocketIO.Socket): void;
-    protected _onDisconnection(socket: SocketIO.Socket): void;
+    addUser(id: UserId, user: UserData): boolean;
+    removeUser(id: UserId): boolean;
 }

@@ -51,7 +51,7 @@ gulp.task('bundle', function () {
 
     return merge([
         result,
-        gulp.src(BUILT_TYPINGS.concat('**')).pipe(gulp.dest(LIB))
+        gulp.src([BUILT_TYPINGS.concat('**/*.d.ts')]).pipe(gulp.dest(LIB))
     ]);
 });
 

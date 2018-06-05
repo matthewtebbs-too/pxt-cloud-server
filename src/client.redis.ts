@@ -5,13 +5,20 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
+import { EventEmitter } from 'events';
 import * as Redis from 'redis';
 
 import { ServerConfig } from './server.config';
 
 const debug = require('debug')('pxt-cloud:redis');
 
-export class ClientRedis {
+export class ClientRedis extends EventEmitter {
+    public static callbackHandler<T>(err: Error | null, reply: T) {
+        if (err) {
+            debug(err);
+        }
+    }
+
     private static _singleton = new ClientRedis();
 
     /* Reference: https://github.com/NodeRedis/node_redis */
@@ -38,17 +45,23 @@ export class ClientRedis {
         return this._singleton;
     }
 
-    protected _redisclient: Redis.RedisClient;
+    public static get redisAPI(): Redis.RedisClient {
+        return this.singleton._redisClient;
+    }
+
+    protected _redisClient: Redis.RedisClient;
 
     protected constructor(port_: number = ServerConfig.redisport, host_: string = ServerConfig.redishost) {
-        this._redisclient = new Redis.RedisClient({ host: host_, port: port_, retry_strategy: ClientRedis._retrystrategy });
+        super();
 
-        this._redisclient.on('ready', () => debug(`connection ready`));
-        this._redisclient.on('end', () => debug(`connection ended`));
-        this._redisclient.on('error', error => debug(error));
+        this._redisClient = new Redis.RedisClient({ host: host_, port: port_, retry_strategy: ClientRedis._retrystrategy });
+
+        this._redisClient.on('ready', () => debug(`connection ready`));
+        this._redisClient.on('end', () => debug(`connection ended`));
+        this._redisClient.on('error', error => debug(error));
     }
 
     public dispose() {
-        this._redisclient.quit();
+        this._redisClient.quit();
     }
 }

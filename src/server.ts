@@ -9,6 +9,9 @@ import * as Http from 'http';
 require('http-shutdown').extend();
 import * as Path from 'path';
 
+import { WorldAPI } from './api.world';
+import { ClientRedis } from './client.redis';
+import { WorldEndpoint } from './endpoint.world';
 import { ServerConfig } from './server.config';
 
 const debug = require('debug')('pxt-cloud:server');
@@ -37,22 +40,33 @@ export class Server {
         return this._singleton;
     }
 
-    protected _httpserver: Http_ServerWithShutdown;
-
-    public get httpserver(): Http_ServerWithShutdown  {
-        return this._httpserver;
+    public static get httpServer(): Http_ServerWithShutdown  {
+        return this.singleton._httpServer;
     }
 
+    public static get worldAPI(): WorldAPI {
+        return this.singleton._worldEndpoint;
+    }
+
+    protected _httpServer: Http_ServerWithShutdown;
+    protected _worldEndpoint: WorldEndpoint;
+
     protected constructor(port_: number = ServerConfig.port, host_: string = ServerConfig.host) {
-        this._httpserver = (Http.createServer(Server._handler) as any as Http_ServerWithShutdown).withShutdown();
+        this._httpServer = (Http.createServer(Server._handler) as any as Http_ServerWithShutdown).withShutdown();
 
-        this._httpserver.listen(port_, host_, () => debug(`listening on ${host_} at port ${port_}`));
-        this._httpserver.on('close', () => debug(`closed`));
-        this._httpserver.on('error', error => debug(error));
+        this._httpServer.listen(port_, host_, () => debug(`listening on ${host_} at port ${port_}`));
+        this._httpServer.on('close', () => debug(`closed`));
+        this._httpServer.on('error', error => debug(error));
 
+        this._worldEndpoint = new WorldEndpoint(this._httpServer);
     }
 
     public dispose() {
-        this._httpserver.close();
+        this._httpServer.close();
     }
 }
+
+process.on('SIGINT', () => {
+    ClientRedis.singleton.dispose();
+    Server.singleton.dispose();
+});

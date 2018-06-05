@@ -4,13 +4,12 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
+import { EventEmitter } from 'events';
 import * as SocketIO from 'socket.io';
-
-import { Server } from './server';
 
 const debug = require('debug')('pxt-cloud:endpoint');
 
-export abstract class Endpoint {
+export class Endpoint extends EventEmitter {
     private _io: SocketIO.Namespace | null = null;
 
     protected get io(): SocketIO.Namespace | null {
@@ -18,8 +17,10 @@ export abstract class Endpoint {
     }
 
     constructor(server: any, nsp?: string) {
-        if (server instanceof Server) {
-            server = server.httpserver;
+        super();
+
+        if ('httpServer' in server) {
+            server = server.httpServer;
         }
 
         this._attach(SocketIO(server).of(`/${nsp || ''}`));
@@ -41,6 +42,11 @@ export abstract class Endpoint {
         });
     }
 
-    protected abstract _onConnection(socket: SocketIO.Socket): void;
-    protected abstract _onDisconnection(socket: SocketIO.Socket): void;
+    protected _onConnection(socket: SocketIO.Socket) {
+        /* do nothing */
+    }
+
+    protected _onDisconnection(socket: SocketIO.Socket) {
+        /* do nothing */
+    }
 }
