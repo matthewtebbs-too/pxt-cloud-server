@@ -4,6 +4,7 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-import { Server, WorldEndpoint } from '../lib';
+import { ClientRedis, Server, WorldEndpoint } from '../lib';
 
+const clientredis = ClientRedis.singleton;
 const endpointWorld = new WorldEndpoint(Server.singleton);

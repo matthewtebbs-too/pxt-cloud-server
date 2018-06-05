@@ -1,5 +1,7 @@
 export declare class ServerConfig {
-    static hostname: string;
+    static host: string;
     static port: number;
-    static readonly defaultUri: string;
+    static redishost: string;
+    static redisport: number;
+    static readonly serverUri: string;
 }
