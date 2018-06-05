@@ -49,6 +49,7 @@
   "scripts": {
     "clean": "gulp clean",
     "build": "gulp build",
+    "bundle": "gulp bundle",
     "start": "gulp",
     "test": "tsc -project test/ && node -r dotenv/config built.test/app.js"
   }
