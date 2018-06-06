@@ -10,6 +10,10 @@ import * as SocketIO from 'socket.io';
 const debug = require('debug')('pxt-cloud:endpoint');
 
 export class Endpoint extends EventEmitter {
+    public static connectId(socket?: SocketIO.Socket) {
+        return socket ? socket.id : '';
+    }
+
     private _io: SocketIO.Namespace | null = null;
 
     protected get io(): SocketIO.Namespace | null {

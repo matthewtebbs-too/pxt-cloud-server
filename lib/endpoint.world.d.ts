@@ -1,13 +1,12 @@
 /// <reference types="socket.io" />
-import { Callback, UserData, UserId, WorldAPI } from './api.world';
+import { Callback, UserData, WorldAPI } from './api.world';
 import { Endpoint } from './endpoint.base';
 export declare const keys: {
-    userId: (id: string) => string;
-    users: string;
+    user: (sockid: string) => string;
 };
 export declare class WorldEndpoint extends Endpoint implements WorldAPI {
     constructor(server: any);
-    addUser(user: UserData, id: UserId, cb?: Callback<boolean>): boolean;
-    removeUser(id: UserId, cb?: Callback<boolean>): boolean;
+    addUser(user: UserData, cb?: Callback<boolean>, socket?: SocketIO.Socket): boolean;
+    removeUser(cb?: Callback<boolean>, socket?: SocketIO.Socket): boolean;
     protected _onConnection(socket: SocketIO.Socket): void;
 }

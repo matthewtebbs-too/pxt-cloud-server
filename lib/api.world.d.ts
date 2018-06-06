@@ -8,6 +8,6 @@ export declare type UserData = {
     name: string;
 };
 export interface WorldAPI {
-    addUser(user: UserData, id: UserId, cb?: Callback<boolean>): boolean;
-    removeUser(id: UserId, cb?: Callback<boolean>): boolean;
+    addUser(user: UserData, cb?: Callback<boolean>): boolean;
+    removeUser(cb?: Callback<boolean>): boolean;
 }
