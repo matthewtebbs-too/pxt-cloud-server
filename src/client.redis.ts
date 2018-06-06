@@ -5,6 +5,8 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
+// tslint:disable:interface-name
+
 import { EventEmitter } from 'events';
 import * as Redis from 'redis';
 
@@ -12,30 +14,26 @@ import { ServerConfig } from './server.config';
 
 const debug = require('debug')('pxt-cloud:redis');
 
-export class ClientRedis extends EventEmitter {
-    public static callbackHandler<T>(err: Error | null, reply: T) {
-        if (err) {
-            debug(err);
-        }
-    }
+export type RedisAPI = Redis.RedisClient;
 
+export class ClientRedis extends EventEmitter {
     private static _singleton = new ClientRedis();
 
     /* Reference: https://github.com/NodeRedis/node_redis */
     private static _retrystrategy(options: Redis.RetryStrategyOptions): number | Error {
+        let error = null;
+
         if (options.error && options.error.code === 'ECONNREFUSED') {
-            debug(options.error);
-            return new Error('connection refused');
+            error = options.error;
+        } else if (options.total_retry_time > 1000 * 60 * 60) {
+            error = Error('retry time exhausted');
+        } else if (options.attempt > 10) {
+            error = new Error('max retry attempts reached');
         }
 
-        if (options.total_retry_time > 1000 * 60 * 60) {
-            debug('total retry timeout');
-            return new Error('retry time exhausted');
-        }
-
-        if (options.attempt > 10) {
-            debug('max attempts');
-            return new Error('max retry attempts reached');
+        if (error) {
+            debug(error);
+            return error;
         }
 
         return Math.min(options.attempt * 100, 3000);
@@ -45,7 +43,7 @@ export class ClientRedis extends EventEmitter {
         return this._singleton;
     }
 
-    public static get redisAPI(): Redis.RedisClient {
+    public static get redisAPI(): RedisAPI {
         return this.singleton._redisClient;
     }
 

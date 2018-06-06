@@ -7,7 +7,7 @@
 
 // tslint:disable:object-literal-key-quotes
 
-import { UserData, UserId, WorldAPI } from './api.world';
+import { Callback, UserData, UserId, WorldAPI } from './api.world';
 import { ClientRedis } from './client.redis';
 import { Endpoint } from './endpoint.base';
 
@@ -23,39 +23,27 @@ export class WorldEndpoint extends Endpoint implements WorldAPI {
         super(server, 'pxt-cloud.world');
     }
 
-    public addUser(user?: UserData, id?: UserId): boolean {
-        let success = !!user && !!id;
+    public addUser(user: UserData, id: UserId, cb?: Callback<boolean>): boolean {
+        const multi = ClientRedis.redisAPI.multi()
+            .sadd(keys.users, id)
+            .hmset(keys.userId(id), user);
 
-        if (success) {
-            success = ClientRedis.redisAPI.sadd(keys.users, id!, ClientRedis.callbackHandler);
-        }
-
-        if (success) {
-            success = ClientRedis.redisAPI.hmset(keys.userId(id!), { 'username': user!.name }, ClientRedis.callbackHandler);
-        }
-
-        return success;
+        return multi.exec((err, reply) => cb ? cb({ error: err, reply: reply[0] /* reply from sadd */ }) : undefined);
     }
 
-    public removeUser(id?: UserId): boolean {
-        let success = !!!id;
+    public removeUser(id: UserId, cb?: Callback<boolean>): boolean {
+        const multi = ClientRedis.redisAPI.multi()
+            .srem(keys.users, id)
+            .del(keys.userId(id));
 
-        if (success) {
-            success = ClientRedis.redisAPI.hdel(keys.userId(id!), ['username'], ClientRedis.callbackHandler);
-        }
-
-        if (success) {
-            success = ClientRedis.redisAPI.srem(keys.users, id!, ClientRedis.callbackHandler);
-        }
-
-        return success;
+        return multi.exec((err, reply) => cb ? cb({ error: err, reply: reply[0] /* reply from srem */ }) : undefined);
     }
 
     protected _onConnection(socket: SocketIO.Socket) {
         super._onConnection(socket);
 
-        socket.on('user_add', (...args) => this.addUser(...args));
-        socket.on('user_remove', (...args) => this.removeUser(...args));
+        socket.on('user_add', this.addUser);
+        socket.on('user_remove', this.removeUser);
 
     }
 }

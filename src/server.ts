@@ -26,8 +26,8 @@ export class Server {
     private static _singleton = new Server();
 
     private static _handler(request: Http.IncomingMessage, response: Http.ServerResponse) {
-        FS.readFile(Path.join(__dirname, 'public') + '/index.html', (error: NodeJS.ErrnoException, data: Buffer) => {
-            if (error) {
+        FS.readFile(Path.join(__dirname, 'public') + '/index.html', (err: NodeJS.ErrnoException, data: Buffer) => {
+            if (err) {
                 response.writeHead(500);
             } else {
                 response.writeHead(200);
@@ -56,7 +56,7 @@ export class Server {
 
         this._httpServer.listen(port_, host_, () => debug(`listening on ${host_} at port ${port_}`));
         this._httpServer.on('close', () => debug(`closed`));
-        this._httpServer.on('error', error => debug(error));
+        this._httpServer.on('error', err => debug(err));
 
         this._worldEndpoint = new WorldEndpoint(this._httpServer);
     }
