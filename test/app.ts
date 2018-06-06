@@ -11,6 +11,6 @@ const worldAPI = Server.worldAPI;
 const userId = '123456';
 
 setTimeout(() => {
-    worldAPI.addUser(userId, { name: 'Bobby Joe' });
+    worldAPI.addUser({ name: 'Bobby Joe' }, userId);
     worldAPI.removeUser(userId);
 }, 500);

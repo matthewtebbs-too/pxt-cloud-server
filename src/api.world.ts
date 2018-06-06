@@ -14,6 +14,6 @@ export interface UserData {
 }
 
 export interface WorldAPI {
-    addUser(id: UserId, user: UserData): boolean;
-    removeUser(id: UserId): boolean;
+    addUser(user: UserData, id?: UserId): boolean;
+    removeUser(id?: UserId): boolean;
 }

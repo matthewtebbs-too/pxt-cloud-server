@@ -23,23 +23,39 @@ export class WorldEndpoint extends Endpoint implements WorldAPI {
         super(server, 'pxt-cloud.world');
     }
 
-    public addUser(id: UserId, user: UserData): boolean {
-        let success = ClientRedis.redisAPI.sadd(keys.users, id, ClientRedis.callbackHandler);
+    public addUser(user?: UserData, id?: UserId): boolean {
+        let success = !!user && !!id;
 
         if (success) {
-            success = ClientRedis.redisAPI.hmset(keys.userId(id), { 'username': user.name }, ClientRedis.callbackHandler);
+            success = ClientRedis.redisAPI.sadd(keys.users, id!, ClientRedis.callbackHandler);
+        }
+
+        if (success) {
+            success = ClientRedis.redisAPI.hmset(keys.userId(id!), { 'username': user!.name }, ClientRedis.callbackHandler);
         }
 
         return success;
     }
 
-    public removeUser(id: UserId): boolean {
-        let success = ClientRedis.redisAPI.hdel(keys.userId(id), ['username'], ClientRedis.callbackHandler);
+    public removeUser(id?: UserId): boolean {
+        let success = !!!id;
 
         if (success) {
-            success = ClientRedis.redisAPI.srem(keys.users, id, ClientRedis.callbackHandler);
+            success = ClientRedis.redisAPI.hdel(keys.userId(id!), ['username'], ClientRedis.callbackHandler);
+        }
+
+        if (success) {
+            success = ClientRedis.redisAPI.srem(keys.users, id!, ClientRedis.callbackHandler);
         }
 
         return success;
+    }
+
+    protected _onConnection(socket: SocketIO.Socket) {
+        super._onConnection(socket);
+
+        socket.on('user_add', (...args) => this.addUser(...args));
+        socket.on('user_remove', (...args) => this.removeUser(...args));
+
     }
 }
