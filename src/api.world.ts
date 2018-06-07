@@ -14,6 +14,15 @@ export type UserData = {
     name: string;
 };
 
+// tslint:disable-next-line:variable-name
+export const WorldEvents = {
+    addUser: 'user add',
+    removeUser: 'user remove',
+
+    userJoined: 'user joined',
+    userLeft: 'user left',
+};
+
 // tslint:disable-next-line:interface-name
 export interface WorldAPI extends EventAPI {
     addUser(user: UserData, cb?: AckCallback<boolean>): boolean;

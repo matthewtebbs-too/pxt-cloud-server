@@ -4,12 +4,6 @@ import { UserData, WorldAPI } from './api.world';
 import { RedisAPI } from './client.redis';
 import { Endpoint } from './endpoint.base';
 import { SocketServerAPI } from './socket.server';
-export declare const WorldEvents: {
-    addUser: string;
-    removeUser: string;
-    userJoined: string;
-    userLeft: string;
-};
 export declare class WorldEndpoint extends Endpoint implements WorldAPI {
     constructor(socketServerAPI: SocketServerAPI, redisAPI: RedisAPI, nsp?: string);
     addUser(user: UserData, cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean;

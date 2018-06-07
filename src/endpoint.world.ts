@@ -8,7 +8,7 @@
 import * as SocketIO from 'socket.io';
 
 import { AckCallback, ackHandler } from './api.base';
-import { UserData, WorldAPI } from './api.world';
+import { UserData, WorldAPI, WorldEvents } from './api.world';
 import { RedisAPI } from './client.redis';
 import { Endpoint } from './endpoint.base';
 import { SocketServerAPI } from './socket.server';
@@ -18,15 +18,6 @@ const debug = require('debug')('pxt-cloud:endpoint.world');
 // tslint:disable-next-line:variable-name
 const WorldDBKeys = {
     user: (sockid: string) => `user:${sockid}`,
-};
-
-// tslint:disable-next-line:variable-name
-export const WorldEvents = {
-    addUser: 'user add',
-    removeUser: 'user remove',
-
-    userJoined: 'user joined',
-    userLeft: 'user left',
 };
 
 export class WorldEndpoint extends Endpoint implements WorldAPI {
