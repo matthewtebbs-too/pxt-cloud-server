@@ -7,6 +7,8 @@
 import { EventEmitter } from 'events';
 import * as SocketIO from 'socket.io';
 
+import { RedisAPI } from './client.redis';
+
 const debug = require('debug')('pxt-cloud:endpoint');
 
 export class Endpoint extends EventEmitter {
@@ -15,17 +17,24 @@ export class Endpoint extends EventEmitter {
     }
 
     private _io: SocketIO.Namespace | null = null;
+    private _redisAPI: RedisAPI;
 
     protected get io(): SocketIO.Namespace | null {
         return this._io;
     }
 
-    constructor(server: any, nsp?: string) {
+    public get redisAPI(): RedisAPI {
+        return this._redisAPI;
+    }
+
+    constructor(server: any, redisAPI: RedisAPI, nsp?: string) {
         super();
 
         if ('httpServer' in server) {
             server = server.httpServer;
         }
+
+        this._redisAPI = redisAPI;
 
         this._attach(SocketIO(server).of(`/${nsp || ''}`));
     }

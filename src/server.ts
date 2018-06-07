@@ -10,7 +10,7 @@ require('http-shutdown').extend();
 import * as Path from 'path';
 
 import { WorldAPI } from './api.world';
-import { ClientRedis } from './client.redis';
+import { ClientRedis, RedisAPI } from './client.redis';
 import { WorldEndpoint } from './endpoint.world';
 import { ServerConfig } from './server.config';
 
@@ -40,33 +40,63 @@ export class Server {
         return this._singleton;
     }
 
-    public static get httpServer(): Http_ServerWithShutdown  {
+    public static get httpServer(): Http_ServerWithShutdown | null {
         return this.singleton._httpServer;
     }
 
-    public static get worldAPI(): WorldAPI {
+    public static get redisAPI(): RedisAPI |  null {
+        return this.singleton._redisClient ? this.singleton._redisClient.redisAPI : null;
+    }
+
+    public static get worldAPI(): WorldAPI | null {
         return this.singleton._worldEndpoint;
     }
 
-    protected _httpServer: Http_ServerWithShutdown;
-    protected _worldEndpoint: WorldEndpoint;
+    protected _httpServer: Http_ServerWithShutdown | null = null;
+    protected _redisClient: ClientRedis | null = null;
+    protected _worldEndpoint: WorldEndpoint | null = null;
 
-    protected constructor(port_: number = ServerConfig.port, host_: string = ServerConfig.host) {
-        this._httpServer = (Http.createServer(Server._handler) as any as Http_ServerWithShutdown).withShutdown();
+    public connect(port_: number = ServerConfig.port, host_: string = ServerConfig.host): Promise<void> {
+        this.dispose();
 
-        this._httpServer.listen(port_, host_, () => debug(`listening on ${host_} at port ${port_}`));
-        this._httpServer.on('close', () => debug(`closed`));
-        this._httpServer.on('error', err => debug(err));
+        return new Promise((resolve, reject) => {
+            this._httpServer = (Http.createServer(Server._handler) as any as Http_ServerWithShutdown).withShutdown();
 
-        this._worldEndpoint = new WorldEndpoint(this._httpServer);
+            this._httpServer.listen(port_, host_, () => {
+                this._httpServer!.on('close', () => debug(`closed`));
+
+                debug(`listening on ${host_} at port ${port_}`);
+
+                this._redisClient = new ClientRedis();
+
+                this._redisClient.connect()
+                    .then(() => {
+                        this._worldEndpoint = new WorldEndpoint(this._httpServer, this._redisClient!.redisAPI!);
+                        resolve();
+                    })
+                    .catch(err => reject(err));
+            });
+
+            this._httpServer.on('error', err => {
+                debug(err);
+                reject(err);
+            });
+         });
     }
 
     public dispose() {
-        this._httpServer.close();
+        if (this._redisClient) {
+            this._redisClient.dispose();
+            this._redisClient = null;
+        }
+
+        if (this._httpServer) {
+            this._httpServer.close();
+            this._httpServer = null;
+        }
     }
 }
 
 process.on('SIGINT', () => {
-    ClientRedis.singleton.dispose();
     Server.singleton.dispose();
 });

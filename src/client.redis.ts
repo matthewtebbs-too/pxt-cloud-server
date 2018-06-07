@@ -17,8 +17,6 @@ const debug = require('debug')('pxt-cloud:redis');
 export type RedisAPI = Redis.RedisClient;
 
 export class ClientRedis extends EventEmitter {
-    private static _singleton = new ClientRedis();
-
     /* Reference: https://github.com/NodeRedis/node_redis */
     private static _retrystrategy(options: Redis.RetryStrategyOptions): number | Error {
         let error = null;
@@ -39,27 +37,37 @@ export class ClientRedis extends EventEmitter {
         return Math.min(options.attempt * 100, 3000);
     }
 
-    public static get singleton(): ClientRedis {
-        return this._singleton;
+    public get redisAPI(): RedisAPI |  null {
+        return this._redisClient;
     }
 
-    public static get redisAPI(): RedisAPI {
-        return this.singleton._redisClient;
-    }
+    protected _redisClient: Redis.RedisClient | null = null;
 
-    protected _redisClient: Redis.RedisClient;
+    public connect(port_: number = ServerConfig.redisport, host_: string = ServerConfig.redishost): Promise<void> {
+        this.dispose();
 
-    protected constructor(port_: number = ServerConfig.redisport, host_: string = ServerConfig.redishost) {
-        super();
+        return new Promise((resolve, reject) => {
+            this._redisClient = new Redis.RedisClient({ host: host_, port: port_, retry_strategy: ClientRedis._retrystrategy });
 
-        this._redisClient = new Redis.RedisClient({ host: host_, port: port_, retry_strategy: ClientRedis._retrystrategy });
+            this._redisClient.on('ready', () => {
+                this._redisClient!.on('end', () => debug(`connection ended`));
 
-        this._redisClient.on('ready', () => debug(`connection ready`));
-        this._redisClient.on('end', () => debug(`connection ended`));
-        this._redisClient.on('error', error => debug(error));
+                debug(`connection ready`);
+                resolve();
+            });
+
+            this._redisClient.on('error', err => {
+                debug(err);
+                reject(err);
+            });
+
+        });
     }
 
     public dispose() {
-        this._redisClient.quit();
+        if (this._redisClient) {
+            this._redisClient.quit();
+            this._redisClient = null;
+        }
     }
 }
