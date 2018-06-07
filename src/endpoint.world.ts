@@ -5,7 +5,7 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-// tslint:disable:object-literal-key-quotes
+import * as SocketIO from 'socket.io';
 
 import { AckCallback, ackHandler } from './api.base';
 import { UserData, WorldAPI } from './api.world';
@@ -15,8 +15,18 @@ import { SocketServerAPI } from './socket.server';
 
 const debug = require('debug')('pxt-cloud:endpoint.world');
 
-export const keys = {
+// tslint:disable-next-line:variable-name
+const WorldDBKeys = {
     user: (sockid: string) => `user:${sockid}`,
+};
+
+// tslint:disable-next-line:variable-name
+export const WorldEvents = {
+    addUser: 'user add',
+    removeUser: 'user remove',
+
+    userJoined: 'user joined',
+    userLeft: 'user left',
 };
 
 export class WorldEndpoint extends Endpoint implements WorldAPI {
@@ -25,28 +35,46 @@ export class WorldEndpoint extends Endpoint implements WorldAPI {
     }
 
     public addUser(user: UserData, cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
-        const userkey = keys.user(Endpoint.connectId(socket));
+        const userId = Endpoint.connectId(socket);
+        const userkey = WorldDBKeys.user(userId);
 
         const multi = this.redisAPI.multi()
             .exists(userkey)
             .hmset(userkey, user);
 
-        return multi.exec(ackHandler<boolean>(reply => reply[0] /* reply from exists */, cb));
+        return multi.exec(ackHandler<boolean>(reply => {
+            const existed = !!reply[0]; /* reply from exists */
+
+            if (!existed) {
+                this._broadcastEvent(WorldEvents.userJoined, userId, user, socket);
+            }
+
+            return existed;
+        }, cb));
     }
 
     public removeUser(cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
-        const userkey = keys.user(Endpoint.connectId(socket));
+        const userId = Endpoint.connectId(socket);
+        const userkey = WorldDBKeys.user(userId);
 
         const multi = this.redisAPI.multi()
             .del(userkey);
 
-        return multi.exec(ackHandler<boolean>(reply => reply[0] /* reply from del */, cb));
+        return multi.exec(ackHandler<boolean>(reply => {
+            const existed = !!reply[0]; /* reply from del */
+
+            if (existed) {
+                this._broadcastEvent(WorldEvents.userLeft, userId, socket);
+            }
+
+            return existed;
+        }, cb));
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on('user_add', (...args: any[]) => this.addUser(args[0], args[1], socket));
-        socket.on('user_remove', (...args: any[]) => this.removeUser(args[0], socket));
+        socket.on(WorldEvents.addUser, (...args: any[]) => this.addUser(args[0], args[1], socket));
+        socket.on(WorldEvents.removeUser, (...args: any[]) => this.removeUser(args[0], socket));
     }
 }

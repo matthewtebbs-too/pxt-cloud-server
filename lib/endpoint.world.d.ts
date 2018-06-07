@@ -1,11 +1,14 @@
-/// <reference types="socket.io" />
+import * as SocketIO from 'socket.io';
 import { AckCallback } from './api.base';
 import { UserData, WorldAPI } from './api.world';
 import { RedisAPI } from './client.redis';
 import { Endpoint } from './endpoint.base';
 import { SocketServerAPI } from './socket.server';
-export declare const keys: {
-    user: (sockid: string) => string;
+export declare const WorldEvents: {
+    addUser: string;
+    removeUser: string;
+    userJoined: string;
+    userLeft: string;
 };
 export declare class WorldEndpoint extends Endpoint implements WorldAPI {
     constructor(socketServerAPI: SocketServerAPI, redisAPI: RedisAPI, nsp?: string);

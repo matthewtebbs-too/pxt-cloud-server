@@ -5,6 +5,7 @@
 */
 
 import { EventEmitter } from 'events';
+import * as SocketIO from 'socket.io';
 
 import { RedisAPI } from './client.redis';
 import { SocketServerAPI } from './socket.server';
@@ -13,7 +14,7 @@ const debug = require('debug')('pxt-cloud:endpoint');
 
 export class Endpoint extends EventEmitter {
     public static connectId(socket?: SocketIO.Socket) {
-        return socket ? socket.id : '';
+        return socket ? socket.id : 'localhost';
     }
 
     private _socketNamespace: SocketIO.Namespace | null = null;
@@ -44,6 +45,27 @@ export class Endpoint extends EventEmitter {
         socketNamespace.on('error', (err: Error) => {
             debug(err);
         });
+    }
+
+    protected _broadcastEvent(event: string | symbol, ...args: any[]) {
+        let socket: SocketIO.Socket | null = null;
+
+        if (args.length > 0) {
+            const lastindex = args.length - 1;
+            const last = args[lastindex];
+
+            if (undefined === last || last instanceof SocketIO) {
+                socket = last;
+
+                args = args.slice(0, -1);
+            }
+        }
+
+        this.emit(event, args);
+
+        if (socket) {
+            socket.broadcast.emit(event, ...args);
+        }
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {

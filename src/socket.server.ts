@@ -5,8 +5,6 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-// tslint:disable:interface-name
-
 import * as SocketIO from 'socket.io';
 
 const debug = require('debug')('pxt-cloud:socket.server');

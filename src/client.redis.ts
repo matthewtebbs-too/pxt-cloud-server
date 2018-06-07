@@ -5,8 +5,6 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-// tslint:disable:interface-name
-
 import { EventEmitter } from 'events';
 import * as Redis from 'redis';
 

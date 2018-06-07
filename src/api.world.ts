@@ -5,18 +5,17 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-// tslint:disable:interface-name
-// tslint:disable:interface-over-type-literal
-
-import { AckCallback } from './api.base';
+import { AckCallback, EventAPI } from './api.base';
 
 export type UserId = string;
 
+// tslint:disable-next-line:interface-over-type-literal
 export type UserData = {
     name: string;
 };
 
-export interface WorldAPI {
+// tslint:disable-next-line:interface-name
+export interface WorldAPI extends EventAPI {
     addUser(user: UserData, cb?: AckCallback<boolean>): boolean;
     removeUser(cb?: AckCallback<boolean>): boolean;
 }

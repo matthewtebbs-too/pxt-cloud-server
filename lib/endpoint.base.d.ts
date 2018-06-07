@@ -1,6 +1,6 @@
-/// <reference types="socket.io" />
 /// <reference types="node" />
 import { EventEmitter } from 'events';
+import * as SocketIO from 'socket.io';
 import { RedisAPI } from './client.redis';
 import { SocketServerAPI } from './socket.server';
 export declare class Endpoint extends EventEmitter {
@@ -10,6 +10,7 @@ export declare class Endpoint extends EventEmitter {
     protected readonly socketNamespace: SocketIO.Namespace | null;
     protected readonly redisAPI: RedisAPI;
     constructor(socketServerAPI: SocketServerAPI, redisAPI: RedisAPI, nsp?: string);
+    protected _broadcastEvent(event: string | symbol, ...args: any[]): void;
     protected _onClientConnect(socket: SocketIO.Socket): void;
     protected _onClientDisconnect(socket: SocketIO.Socket): void;
 }
