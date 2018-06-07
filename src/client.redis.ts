@@ -16,7 +16,7 @@ const debug = require('debug')('pxt-cloud:redis');
 
 export type RedisAPI = Redis.RedisClient;
 
-export class ClientRedis extends EventEmitter {
+export class RedisClient extends EventEmitter {
     /* Reference: https://github.com/NodeRedis/node_redis */
     private static _retrystrategy(options: Redis.RetryStrategyOptions): number | Error {
         let error = null;
@@ -38,36 +38,35 @@ export class ClientRedis extends EventEmitter {
     }
 
     public get redisAPI(): RedisAPI |  null {
-        return this._redisClient;
+        return this._redis;
     }
 
-    protected _redisClient: Redis.RedisClient | null = null;
+    protected _redis: Redis.RedisClient | null = null;
 
-    public connect(port_: number = ServerConfig.redisport, host_: string = ServerConfig.redishost): Promise<void> {
+    public connect(port_: number = ServerConfig.redisport, host_: string = ServerConfig.redishost): Promise<this> {
         this.dispose();
 
         return new Promise((resolve, reject) => {
-            this._redisClient = new Redis.RedisClient({ host: host_, port: port_, retry_strategy: ClientRedis._retrystrategy });
+            this._redis = new Redis.RedisClient({ host: host_, port: port_, retry_strategy: RedisClient._retrystrategy });
 
-            this._redisClient.on('ready', () => {
-                this._redisClient!.on('end', () => debug(`connection ended`));
+            this._redis.on('ready', () => {
+                this._redis!.on('end', () => debug(`connection ended`));
 
                 debug(`connection ready`);
-                resolve();
+                resolve(this);
             });
 
-            this._redisClient.on('error', err => {
+            this._redis.on('error', err => {
                 debug(err);
                 reject(err);
             });
-
         });
     }
 
     public dispose() {
-        if (this._redisClient) {
-            this._redisClient.quit();
-            this._redisClient = null;
+        if (this._redis) {
+            this._redis.quit();
+            this._redis = null;
         }
     }
 }

@@ -4,15 +4,15 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-import { Server } from '..';
+import { Server, WorldAPI } from '..';
 
 const debug = require('debug')('pxt-cloud:test');
 
-function test() {
-    Server.worldAPI!.addUser({ name: 'Bobby Joe' }, debug);
-    Server.worldAPI!.addUser({ name: 'Bobby Joe' }, debug);
-    Server.worldAPI!.removeUser(debug);
-    Server.worldAPI!.removeUser(debug);
+function testWorldAPI(api: WorldAPI) {
+    api.addUser({ name: 'Bobby Joe' }, debug);
+    api.addUser({ name: 'Bobby Joe' }, debug);
+    api.removeUser(debug);
+    api.removeUser(debug);
 }
 
-Server.singleton.connect().then(test).catch(debug);
+Server.singleton.connect().then(server => testWorldAPI(server.worldAPI!)).catch(debug);

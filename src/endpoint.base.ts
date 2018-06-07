@@ -5,9 +5,9 @@
 */
 
 import { EventEmitter } from 'events';
-import * as SocketIO from 'socket.io';
 
 import { RedisAPI } from './client.redis';
+import { SocketServerAPI } from './socket.server';
 
 const debug = require('debug')('pxt-cloud:endpoint');
 
@@ -16,50 +16,45 @@ export class Endpoint extends EventEmitter {
         return socket ? socket.id : '';
     }
 
-    private _io: SocketIO.Namespace | null = null;
+    private _socketNamespace: SocketIO.Namespace | null = null;
     private _redisAPI: RedisAPI;
 
-    protected get io(): SocketIO.Namespace | null {
-        return this._io;
+    protected get socketNamespace(): SocketIO.Namespace | null {
+        return this._socketNamespace;
     }
 
-    public get redisAPI(): RedisAPI {
+    protected get redisAPI(): RedisAPI {
         return this._redisAPI;
     }
 
-    constructor(server: any, redisAPI: RedisAPI, nsp?: string) {
+    constructor(socketServerAPI: SocketServerAPI, redisAPI: RedisAPI, nsp?: string) {
         super();
 
-        if ('httpServer' in server) {
-            server = server.httpServer;
-        }
+        const socketNamespace = socketServerAPI.of(`/${nsp || ''}`);
+        this._socketNamespace = socketNamespace;
 
         this._redisAPI = redisAPI;
 
-        this._attach(SocketIO(server).of(`/${nsp || ''}`));
-    }
+        socketNamespace.on('connect', (socket: SocketIO.Socket) => {
+            debug(`${socket.id} client connected from ${socket.handshake.address}`);
 
-    protected _attach(io: SocketIO.Namespace) {
-        this._io = io;
+            this._onClientConnect(socket);
+        });
 
-        io.on('connection', (socket: SocketIO.Socket) => {
-            debug(`${io.name} client connected from ${socket.handshake.address}`);
-
-            this._onConnection(socket);
-
-            socket.on('disconnect', (reason) => {
-                debug(`${io.name} client disconnected from ${socket.handshake.address}`);
-
-                this._onDisconnection(socket);
-            });
+        socketNamespace.on('error', (err: Error) => {
+            debug(err);
         });
     }
 
-    protected _onConnection(socket: SocketIO.Socket) {
-        /* do nothing */
+    protected _onClientConnect(socket: SocketIO.Socket) {
+        socket.on('disconnect', reason => {
+            debug(`${socket.id} client disconnected from ${socket.handshake.address}\n(${reason})`);
+
+            this._onClientDisconnect(socket);
+        });
     }
 
-    protected _onDisconnection(socket: SocketIO.Socket) {
+    protected _onClientDisconnect(socket: SocketIO.Socket) {
         /* do nothing */
     }
 }

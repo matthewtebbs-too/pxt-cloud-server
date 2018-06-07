@@ -10,9 +10,10 @@ require('http-shutdown').extend();
 import * as Path from 'path';
 
 import { WorldAPI } from './api.world';
-import { ClientRedis, RedisAPI } from './client.redis';
+import { RedisAPI, RedisClient } from './client.redis';
 import { WorldEndpoint } from './endpoint.world';
 import { ServerConfig } from './server.config';
+import { SocketServer } from './socket.server';
 
 const debug = require('debug')('pxt-cloud:server');
 
@@ -40,23 +41,28 @@ export class Server {
         return this._singleton;
     }
 
-    public static get httpServer(): Http_ServerWithShutdown | null {
-        return this.singleton._httpServer;
+    public get httpServer(): Http_ServerWithShutdown | null {
+        return this._httpServer;
     }
 
-    public static get redisAPI(): RedisAPI |  null {
-        return this.singleton._redisClient ? this.singleton._redisClient.redisAPI : null;
+    public get socketServerAPI(): SocketIO.Server | null {
+        return this._socketServer ? this._socketServer.socketAPI : null;
     }
 
-    public static get worldAPI(): WorldAPI | null {
-        return this.singleton._worldEndpoint;
+    public get redisAPI(): RedisAPI |  null {
+        return this._redisClient ? this._redisClient.redisAPI : null;
+    }
+
+    public get worldAPI(): WorldAPI | null {
+        return this._worldEndpoint;
     }
 
     protected _httpServer: Http_ServerWithShutdown | null = null;
-    protected _redisClient: ClientRedis | null = null;
+    protected _socketServer: SocketServer | null = null;
+    protected _redisClient: RedisClient | null = null;
     protected _worldEndpoint: WorldEndpoint | null = null;
 
-    public connect(port_: number = ServerConfig.port, host_: string = ServerConfig.host): Promise<void> {
+    public connect(port_: number = ServerConfig.port, host_: string = ServerConfig.host): Promise<Server> {
         this.dispose();
 
         return new Promise((resolve, reject) => {
@@ -67,12 +73,14 @@ export class Server {
 
                 debug(`listening on ${host_} at port ${port_}`);
 
-                this._redisClient = new ClientRedis();
+                this._socketServer = new SocketServer(this._httpServer);
+
+                this._redisClient = new RedisClient();
 
                 this._redisClient.connect()
-                    .then(() => {
-                        this._worldEndpoint = new WorldEndpoint(this._httpServer, this._redisClient!.redisAPI!);
-                        resolve();
+                    .then(client => {
+                        this._worldEndpoint = new WorldEndpoint(this._socketServer!.socketAPI!, client.redisAPI!);
+                        resolve(this);
                     })
                     .catch(err => reject(err));
             });
@@ -85,6 +93,11 @@ export class Server {
     }
 
     public dispose() {
+        if (this._socketServer) {
+            this._socketServer.dispose();
+            this._socketServer = null;
+        }
+
         if (this._redisClient) {
             this._redisClient.dispose();
             this._redisClient = null;

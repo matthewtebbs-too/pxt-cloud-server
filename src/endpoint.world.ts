@@ -11,6 +11,7 @@ import { AckCallback, ackHandler } from './api.base';
 import { UserData, WorldAPI } from './api.world';
 import { RedisAPI } from './client.redis';
 import { Endpoint } from './endpoint.base';
+import { SocketServerAPI } from './socket.server';
 
 const debug = require('debug')('pxt-cloud:endpoint.world');
 
@@ -19,8 +20,8 @@ export const keys = {
 };
 
 export class WorldEndpoint extends Endpoint implements WorldAPI {
-    constructor(server: any, redisAPI: RedisAPI) {
-        super(server, redisAPI, 'pxt-cloud.world');
+    constructor(socketServerAPI: SocketServerAPI, redisAPI: RedisAPI, nsp?: string) {
+        super(socketServerAPI, redisAPI, 'pxt-cloud.world');
     }
 
     public addUser(user: UserData, cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
@@ -42,8 +43,8 @@ export class WorldEndpoint extends Endpoint implements WorldAPI {
         return multi.exec(ackHandler<boolean>(reply => reply[0] /* reply from del */, cb));
     }
 
-    protected _onConnection(socket: SocketIO.Socket) {
-        super._onConnection(socket);
+    protected _onClientConnect(socket: SocketIO.Socket) {
+        super._onClientConnect(socket);
 
         socket.on('user_add', (...args: any[]) => this.addUser(args[0], args[1], socket));
         socket.on('user_remove', (...args: any[]) => this.removeUser(args[0], socket));
