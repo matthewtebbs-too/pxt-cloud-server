@@ -7,7 +7,8 @@
 
 // tslint:disable:object-literal-key-quotes
 
-import { Callback, UserData, UserId, WorldAPI } from './api.world';
+import { AckCallback, ackHandler } from './api.base';
+import { UserData, WorldAPI } from './api.world';
 import { ClientRedis } from './client.redis';
 import { Endpoint } from './endpoint.base';
 
@@ -22,23 +23,23 @@ export class WorldEndpoint extends Endpoint implements WorldAPI {
         super(server, 'pxt-cloud.world');
     }
 
-    public addUser(user: UserData, cb?: Callback<boolean>, socket?: SocketIO.Socket): boolean {
+    public addUser(user: UserData, cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
         const userkey = keys.user(Endpoint.connectId(socket));
 
         const multi = ClientRedis.redisAPI.multi()
             .exists(userkey)
             .hmset(userkey, user);
 
-        return multi.exec((err, reply) => cb ? cb({ error: err, reply: reply[0] /* reply from exists */ }) : undefined);
+        return multi.exec(ackHandler<boolean>(reply => reply[0] /* reply from exists */, cb));
     }
 
-    public removeUser(cb?: Callback<boolean>, socket?: SocketIO.Socket): boolean {
+    public removeUser(cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
         const userkey = keys.user(Endpoint.connectId(socket));
 
         const multi = ClientRedis.redisAPI.multi()
             .del(userkey);
 
-        return multi.exec((err, reply) => cb ? cb({ error: err, reply: reply[0] /* reply from del */ }) : undefined);
+        return multi.exec(ackHandler<boolean>(reply => reply[0] /* reply from del */, cb));
     }
 
     protected _onConnection(socket: SocketIO.Socket) {

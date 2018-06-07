@@ -8,12 +8,7 @@
 // tslint:disable:interface-name
 // tslint:disable:interface-over-type-literal
 
-export interface Ack<T> {
-    readonly error: Error | null;
-    readonly reply: T;
-}
-
-export type Callback<T> = (ack: Ack<T>) => void;
+import { AckCallback } from './api.base';
 
 export type UserId = string;
 
@@ -22,6 +17,6 @@ export type UserData = {
 };
 
 export interface WorldAPI {
-    addUser(user: UserData, cb?: Callback<boolean>): boolean;
-    removeUser(cb?: Callback<boolean>): boolean;
+    addUser(user: UserData, cb?: AckCallback<boolean>): boolean;
+    removeUser(cb?: AckCallback<boolean>): boolean;
 }

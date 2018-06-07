@@ -1,13 +1,9 @@
-export interface Ack<T> {
-    readonly error: Error | null;
-    readonly reply: T;
-}
-export declare type Callback<T> = (ack: Ack<T>) => void;
+import { AckCallback } from './api.base';
 export declare type UserId = string;
 export declare type UserData = {
     name: string;
 };
 export interface WorldAPI {
-    addUser(user: UserData, cb?: Callback<boolean>): boolean;
-    removeUser(cb?: Callback<boolean>): boolean;
+    addUser(user: UserData, cb?: AckCallback<boolean>): boolean;
+    removeUser(cb?: AckCallback<boolean>): boolean;
 }
