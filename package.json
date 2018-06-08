@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/muddytummy/pxt-cloud#readme",
   "dependencies": {
-    "@types/node": "^8.10.18",
+    "@types/node": "^8.10.19",
     "@types/redis": "^2.8.6",
     "@types/socket.io": "^1.4.34",
     "debug": "^3.1.0",
