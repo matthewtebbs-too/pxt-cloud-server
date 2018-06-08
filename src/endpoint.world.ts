@@ -8,7 +8,7 @@
 import * as SocketIO from 'socket.io';
 
 import { AckCallback, ackHandler } from './api.base';
-import { UserData, WorldAPI, WorldEvents } from './api.world';
+import { UserData, WorldAPI } from './api.world';
 import { RedisAPI } from './client.redis';
 import { Endpoint } from './endpoint.base';
 import { SocketServerAPI } from './socket.server';
@@ -37,7 +37,7 @@ export class WorldEndpoint extends Endpoint implements WorldAPI {
             const existed = !!reply[0]; /* reply from exists */
 
             if (!existed) {
-                this._broadcastEvent(WorldEvents.userJoined, userId, user, socket);
+                this._broadcastEvent('user joined', userId, user, socket);
             }
 
             return existed;
@@ -55,7 +55,7 @@ export class WorldEndpoint extends Endpoint implements WorldAPI {
             const existed = !!reply[0]; /* reply from del */
 
             if (existed) {
-                this._broadcastEvent(WorldEvents.userLeft, userId, socket);
+                this._broadcastEvent('user left', userId, socket);
             }
 
             return existed;
@@ -65,7 +65,7 @@ export class WorldEndpoint extends Endpoint implements WorldAPI {
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on(WorldEvents.addUser, (...args: any[]) => this.addUser(args[0], args[1], socket));
-        socket.on(WorldEvents.removeUser, (...args: any[]) => this.removeUser(args[0], socket));
+        socket.on('add user', (args: any[]) => this.addUser(args[0], args[1], socket));
+        socket.on('remove user', (args: any[]) => this.removeUser(args[0], socket));
     }
 }

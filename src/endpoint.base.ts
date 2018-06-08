@@ -47,14 +47,14 @@ export class Endpoint extends EventEmitter {
         });
     }
 
-    protected _broadcastEvent(event: string | symbol, ...args: any[]) {
+    protected _broadcastEvent(event: string, ...args: any[]) {
         let socket: SocketIO.Socket | null = null;
 
         if (args.length > 0) {
             const lastindex = args.length - 1;
             const last = args[lastindex];
 
-            if (undefined === last || last instanceof SocketIO) {
+            if (undefined === last || typeof last === 'object') {
                 socket = last;
 
                 args = args.slice(0, -1);
@@ -64,6 +64,7 @@ export class Endpoint extends EventEmitter {
         this.emit(event, args);
 
         if (socket) {
+            debug('sending broadcast');
             socket.broadcast.emit(event, ...args);
         }
     }
