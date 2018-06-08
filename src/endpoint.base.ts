@@ -7,12 +7,15 @@
 import { EventEmitter } from 'events';
 import * as SocketIO from 'socket.io';
 
+import { EventAPI } from './api.base';
 import { RedisAPI } from './client.redis';
 import { SocketServerAPI } from './socket.server';
 
+export { EventAPI } from './api.base';
+
 const debug = require('debug')('pxt-cloud:endpoint');
 
-export class Endpoint extends EventEmitter {
+export class Endpoint extends EventEmitter implements EventAPI {
     public static connectId(socket?: SocketIO.Socket) {
         return socket ? socket.id : 'localhost';
     }
@@ -47,7 +50,7 @@ export class Endpoint extends EventEmitter {
         });
     }
 
-    protected _broadcastEvent(event: string, ...args: any[]) {
+    protected _broadcastEvent(event: string, ...args: any[]): boolean {
         let socket: SocketIO.Socket | null = null;
 
         if (args.length > 0) {
@@ -61,11 +64,17 @@ export class Endpoint extends EventEmitter {
             }
         }
 
-        this.emit(event, args);
-
         if (socket) {
-            socket.broadcast.emit(event, ...args);
+            if (!socket.broadcast.emit(event, ...args)) {
+                return false;
+            }
         }
+
+        if (!this.emit(event, args)) {
+            return false;
+        }
+
+        return true;
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {

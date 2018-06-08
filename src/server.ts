@@ -9,9 +9,14 @@ import * as Http from 'http';
 require('http-shutdown').extend();
 import * as Path from 'path';
 
-import { WorldAPI } from './api.world';
 import { RedisAPI, RedisClient } from './client.redis';
-import { WorldEndpoint } from './endpoint.world';
+
+import { EventAPI, Endpoint } from './endpoint.base';
+import { ChatAPI, ChatEndpoint } from './endpoint.chat';
+import { UsersAPI, UsersEndpoint } from './endpoint.users';
+import { WorldAPI, WorldEndpoint } from './endpoint.world';
+
+import { ServerAPI } from './server.api';
 import { ServerConfig } from './server.config';
 import { SocketServer } from './socket.server';
 
@@ -23,7 +28,7 @@ interface Http_ServerWithShutdown extends Http.Server {
     shutdown(listener?: () => void): void;
 }
 
-class Server {
+class Server implements ServerAPI {
     private static _singleton = new Server();
 
     private static _handler(request: Http.IncomingMessage, response: Http.ServerResponse) {
@@ -53,14 +58,29 @@ class Server {
         return this._redisClient ? this._redisClient.redisAPI : null;
     }
 
+    public get chatAPI(): ChatAPI | null {
+        return this._endpoints.chat as EventAPI as ChatAPI;
+    }
+
+    public get usersAPI(): UsersAPI | null {
+        return this._endpoints.users as EventAPI as UsersAPI;
+    }
+
     public get worldAPI(): WorldAPI | null {
-        return this._worldEndpoint;
+        return this._endpoints.world as EventAPI as WorldAPI;
     }
 
     protected _httpServer: Http_ServerWithShutdown | null = null;
+
     protected _socketServer: SocketServer | null = null;
+
     protected _redisClient: RedisClient | null = null;
-    protected _worldEndpoint: WorldEndpoint | null = null;
+
+    protected _endpoints: {[key: string]: Endpoint | null} = {
+        chat: null,
+        users: null,
+        world: null,
+    };
 
     public start(port_: number = ServerConfig.port, host_: string = ServerConfig.host): Promise<this> {
         this.dispose();
@@ -79,7 +99,11 @@ class Server {
 
                 this._redisClient.connect()
                     .then(client => {
-                        this._worldEndpoint = new WorldEndpoint(this._socketServer!.socketAPI!, client.redisAPI!);
+                        this._endpoints = {
+                            chat: new ChatEndpoint(this._socketServer!.socketAPI!, client.redisAPI!),
+                            users: new UsersEndpoint(this._socketServer!.socketAPI!, client.redisAPI!),
+                            world: new WorldEndpoint(this._socketServer!.socketAPI!, client.redisAPI!),
+                        };
                         resolve(this);
                     })
                     .catch(err => reject(err));
@@ -109,8 +133,6 @@ class Server {
         }
     }
 }
-
-import { ServerAPI } from './server.api';
 
 export function startServer(port?: number, host?: string): Promise<ServerAPI> {
     return Server.singleton.start(port, host);
