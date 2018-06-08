@@ -11,7 +11,7 @@ import * as Path from 'path';
 
 import { RedisAPI, RedisClient } from './client.redis';
 
-import { EventAPI, Endpoint } from './endpoint.base';
+import { Endpoint, EventAPI } from './endpoint.base';
 import { ChatAPI, ChatEndpoint } from './endpoint.chat';
 import { UsersAPI, UsersEndpoint } from './endpoint.users';
 import { WorldAPI, WorldEndpoint } from './endpoint.world';
@@ -134,10 +134,10 @@ class Server implements ServerAPI {
     }
 }
 
-export function startServer(port?: number, host?: string): Promise<ServerAPI> {
-    return Server.singleton.start(port, host);
-}
-
 process.on('SIGINT', () => {
     Server.singleton.dispose();
 });
+
+export function startServer(port?: number, host?: string): Promise<ServerAPI> {
+    return Server.singleton.start(port, host);
+}
