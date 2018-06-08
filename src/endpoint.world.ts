@@ -65,7 +65,7 @@ export class WorldEndpoint extends Endpoint implements WorldAPI {
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on('add user', (args: any[]) => this.addUser(args[0], args[1], socket));
-        socket.on('remove user', (args: any[]) => this.removeUser(args[0], socket));
+        socket.on('add user', (user: UserData, cb?: AckCallback<boolean>) => this.addUser(user, cb, socket));
+        socket.on('remove user', (cb?: AckCallback<boolean>) => this.removeUser(cb, socket));
     }
 }
