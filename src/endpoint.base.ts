@@ -54,7 +54,7 @@ export class Endpoint extends EventEmitter {
             const lastindex = args.length - 1;
             const last = args[lastindex];
 
-            if (undefined === last || typeof last === 'object') {
+            if (undefined === last || (typeof last === 'object' && 'broadcast' in last)) {
                 socket = last;
 
                 args = args.slice(0, -1);
@@ -64,14 +64,13 @@ export class Endpoint extends EventEmitter {
         this.emit(event, args);
 
         if (socket) {
-            debug('sending broadcast');
             socket.broadcast.emit(event, ...args);
         }
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
         socket.on('disconnect', reason => {
-            debug(`${socket.id} client disconnected from ${socket.handshake.address}\n(${reason})`);
+            debug(`${socket.id} client disconnected from ${socket.handshake.address} (${reason})`);
 
             this._onClientDisconnect(socket);
         });
