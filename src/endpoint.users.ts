@@ -27,15 +27,28 @@ export class UsersEndpoint extends Endpoint implements UsersAPI {
         super(socketServerAPI, redisAPI, 'pxt-cloud.users');
     }
 
-    public addUser(user: UserData, cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
-        const userId = Endpoint.connectId(socket);
+    public selfInfo(cb?: AckCallback<UserData>, socket?: SocketIO.Socket): boolean {
+        const userId = Endpoint.userId(socket);
+        const userkey = UsersDBKeys.user(userId);
+
+        return this.redisAPI.hgetall(userkey, ackHandler<{ [key: string]: string }, UserData>(cb, reply => {
+            return { /* sanitize data */
+                name: reply && reply.name ? reply.name : '',
+            };
+        }));
+    }
+
+    public addSelf(user: UserData, cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
+        const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
 
         const multi = this.redisAPI.multi()
             .exists(userkey)
-            .hmset(userkey, user);
+            .hmset(userkey, { /* sanitize data */
+                name: user.name || '',
+            });
 
-        return multi.exec(ackHandler<boolean>(cb, reply => {
+        return multi.exec(ackHandler<any[], boolean>(cb, reply => {
             const existed = !!reply && reply[0]; /* reply from exists */
 
             if (!existed) {
@@ -46,15 +59,12 @@ export class UsersEndpoint extends Endpoint implements UsersAPI {
         }));
     }
 
-    public removeUser(cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
-        const userId = Endpoint.connectId(socket);
+    public removeSelf(cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
+        const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
 
-        const multi = this.redisAPI.multi()
-            .del(userkey);
-
-        return multi.exec(ackHandler<boolean>(cb, reply => {
-            const existed = !!reply && reply[0]; /* reply from del */
+        return this.redisAPI.del(userkey, ackHandler<number, boolean>(cb, reply => {
+            const existed = !!reply && 1 === reply[0]; /* reply from del */
 
             if (existed) {
                 this._broadcastEvent('user left', userId, socket);
@@ -67,7 +77,8 @@ export class UsersEndpoint extends Endpoint implements UsersAPI {
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on('add user', (user: UserData, cb?: AckCallback<boolean>) => this.addUser(user, cb, socket));
-        socket.on('remove user', (cb?: AckCallback<boolean>) => this.removeUser(cb, socket));
+        socket.on('self info', (cb?: AckCallback<UserData>) => this.selfInfo(cb, socket));
+        socket.on('add self', (user: UserData, cb?: AckCallback<boolean>) => this.addSelf(user, cb, socket));
+        socket.on('remove self', (cb?: AckCallback<boolean>) => this.removeSelf(cb, socket));
     }
 }

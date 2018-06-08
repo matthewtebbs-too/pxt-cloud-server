@@ -4,6 +4,7 @@ export declare type UserData = {
     name: string;
 };
 export interface UsersAPI extends EventAPI {
-    addUser(user: UserData, cb?: AckCallback<boolean>): boolean;
-    removeUser(cb?: AckCallback<boolean>): boolean;
+    selfInfo(cb?: AckCallback<UserData>): boolean;
+    addSelf(user: UserData, cb?: AckCallback<boolean>): boolean;
+    removeSelf(cb?: AckCallback<boolean>): boolean;
 }

@@ -16,6 +16,8 @@ export { EventAPI } from './api.base';
 const debug = require('debug')('pxt-cloud:endpoint');
 
 export class Endpoint extends EventEmitter implements EventAPI {
+    public static userId = Endpoint.connectId;
+
     public static connectId(socket?: SocketIO.Socket) {
         return socket ? socket.id : 'localhost';
     }

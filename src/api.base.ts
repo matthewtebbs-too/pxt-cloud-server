@@ -15,10 +15,10 @@ export interface Ack<T> {
 
 export type AckCallback<T> = (ack: Ack<T>) => void;
 
-export function ackHandler<T>(cb?: AckCallback<T>, fn?: (reply?: T | any[]) => T) {
-    return (err: Error | null = null, reply?: any[]) => {
+export function ackHandler<S, T>(cb?: AckCallback<T>, fn?: (reply?: S) => T) {
+    return (err: Error | null = null, reply?: S) => {
         if (cb) {
-            cb({ error: err, reply: fn ? fn(reply) : reply });
+            cb({ error: err, reply: fn ? fn(reply) : reply as any as T});
         }
 
         if (err) {

@@ -6,6 +6,7 @@ import { RedisAPI } from './client.redis';
 import { SocketServerAPI } from './socket.server';
 export { EventAPI } from './api.base';
 export declare class Endpoint extends EventEmitter implements EventAPI {
+    static userId: typeof Endpoint.connectId;
     static connectId(socket?: SocketIO.Socket): string;
     private _socketNamespace;
     private _redisAPI;
