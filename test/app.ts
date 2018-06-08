@@ -4,11 +4,11 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-import { Server, WorldAPI } from '..';
+import * as PxtCloud from '..';
 
 const debug = require('debug')('pxt-cloud:test');
 
-function testWorldAPI(api: WorldAPI) {
+function testWorldAPI(api: PxtCloud.WorldAPI) {
     api.on('user joined', debug);
     api.on('user left', debug);
 
@@ -19,4 +19,4 @@ function testWorldAPI(api: WorldAPI) {
     api.removeUser(debug);
 }
 
-Server.singleton.connect().then(server => testWorldAPI(server.worldAPI!)).catch(debug);
+PxtCloud.startServer().then(server => testWorldAPI(server.worldAPI!)).catch(debug);

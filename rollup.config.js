@@ -15,11 +15,12 @@ var dependencies = Object.keys(require('./package.json').dependencies).concat('e
 export default {
     rollup: require('rollup'),
 
-    input: './built/index.js',
+    input: './built/server.js',
     output: {
         format: 'cjs',
         name: 'pxtcloud',
         sourcemap: false,
+        exports: 'named'
     },
     plugins: [
         commonjs(),

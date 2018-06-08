@@ -18,12 +18,12 @@ import { SocketServer } from './socket.server';
 const debug = require('debug')('pxt-cloud:server');
 
 // tslint:disable-next-line:interface-name class-name
-export interface Http_ServerWithShutdown extends Http.Server {
+interface Http_ServerWithShutdown extends Http.Server {
     withShutdown(): Http_ServerWithShutdown;
     shutdown(listener?: () => void): void;
 }
 
-export class Server {
+class Server {
     private static _singleton = new Server();
 
     private static _handler(request: Http.IncomingMessage, response: Http.ServerResponse) {
@@ -62,7 +62,7 @@ export class Server {
     protected _redisClient: RedisClient | null = null;
     protected _worldEndpoint: WorldEndpoint | null = null;
 
-    public connect(port_: number = ServerConfig.port, host_: string = ServerConfig.host): Promise<Server> {
+    public start(port_: number = ServerConfig.port, host_: string = ServerConfig.host): Promise<this> {
         this.dispose();
 
         return new Promise((resolve, reject) => {
@@ -108,6 +108,12 @@ export class Server {
             this._httpServer = null;
         }
     }
+}
+
+import { ServerAPI } from './server.api';
+
+export function startServer(port?: number, host?: string): Promise<ServerAPI> {
+    return Server.singleton.start(port, host);
 }
 
 process.on('SIGINT', () => {
