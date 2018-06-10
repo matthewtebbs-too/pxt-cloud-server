@@ -31,7 +31,7 @@ export class UsersEndpoint extends Endpoint implements UsersAPI {
         const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
 
-        return this.redisAPI.hgetall(userkey, mappedAckHandler<{ [key: string]: string }, UserData>(reply => {
+        return this.redisAPI.hgetall(userkey, mappedAckHandler(reply => {
             return { /* sanitize data */
                 name: reply && reply.name ? reply.name : '',
             };
@@ -48,7 +48,7 @@ export class UsersEndpoint extends Endpoint implements UsersAPI {
                 name: user.name || '',
             });
 
-        return multi.exec(mappedAckHandler<any[], boolean>(reply => {
+        return multi.exec(mappedAckHandler(reply => {
             const existed = !!reply && reply[0] as boolean; /* reply from exists */
 
             if (!existed) {
@@ -63,7 +63,7 @@ export class UsersEndpoint extends Endpoint implements UsersAPI {
         const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
 
-        return this.redisAPI.del(userkey, mappedAckHandler<number, boolean>(reply => {
+        return this.redisAPI.del(userkey, mappedAckHandler(reply => {
             const existed = !!reply; /* reply from del */
 
             if (existed) {

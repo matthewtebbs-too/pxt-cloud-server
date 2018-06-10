@@ -27,10 +27,10 @@ export function ackHandler<T>(cb?: AckCallback<T>) {
     };
 }
 
-export const ackHandlerVoid = (cb?: AckCallback<void>) => ackHandler<void>(cb)(null, undefined);
+export const ackHandlerVoid = (cb?: AckCallback<void>) => ackHandler(cb)(null, undefined);
 
 export function mappedAckHandler<S, T>(map: (reply: S) => T, cb?: AckCallback<T>) {
-    return (error: Error | null, reply: S) => ackHandler<T>(cb)(error, map(reply));
+    return (error: Error | null, reply: S) => ackHandler(cb)(error, map(reply));
 }
 
 // tslint:disable-next-line:interface-name
