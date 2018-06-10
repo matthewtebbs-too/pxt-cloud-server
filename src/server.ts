@@ -41,20 +41,8 @@ class Server implements ServerAPI {
         });
     }
 
-    public static get singleton(): Server {
+    public static get singleton() {
         return this._singleton;
-    }
-
-    public get httpServer(): HttpServerWithShutdown | null {
-        return this._httpServer;
-    }
-
-    public get socketServerAPI(): SocketIO.Server | null {
-        return this._socketServer ? this._socketServer.socketAPI : null;
-    }
-
-    public get redisAPI(): RedisAPI |  null {
-        return this._redisClient ? this._redisClient.redisAPI : null;
     }
 
     public get chatAPI(): ChatAPI | null {
