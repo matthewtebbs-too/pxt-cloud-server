@@ -21,8 +21,12 @@ const UsersDBKeys = {
 };
 
 export class UsersEndpoint extends Endpoint implements API.UsersAPI {
-    constructor(socketServerAPI: SocketServerAPI, redisAPI: RedisAPI) {
-        super(socketServerAPI, redisAPI, 'pxt-cloud.users');
+    constructor(
+        publicAPI: API.PublicAPI,
+        redisAPI: RedisAPI,
+        socketServerAPI: SocketServerAPI,
+    ) {
+        super(publicAPI, redisAPI, socketServerAPI, 'pxt-cloud.users');
     }
 
     public selfInfo(cb?: API.AckCallback<API.UserData>, socket?: SocketIO.Socket): boolean {

@@ -20,7 +20,11 @@ const WorldDBKeys = {
 };
 
 export class WorldEndpoint extends Endpoint implements API.WorldAPI {
-    constructor(socketServerAPI: SocketServerAPI, redisAPI: RedisAPI) {
-        super(socketServerAPI, redisAPI, 'pxt-cloud.world');
+    constructor(
+        publicAPI: API.PublicAPI,
+        redisAPI: RedisAPI,
+        socketServerAPI: SocketServerAPI,
+    ) {
+        super(publicAPI, redisAPI, socketServerAPI, 'pxt-cloud.world');
     }
 }

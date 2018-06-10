@@ -20,8 +20,12 @@ const ChatDBKeys = {
 };
 
 export class ChatEndpoint extends Endpoint implements API.ChatAPI {
-    constructor(socketServerAPI: SocketServerAPI, redisAPI: RedisAPI) {
-        super(socketServerAPI, redisAPI, 'pxt-cloud.chat');
+    constructor(
+        publicAPI: API.PublicAPI,
+        redisAPI: RedisAPI,
+        socketServerAPI: SocketServerAPI,
+    ) {
+        super(publicAPI, redisAPI, socketServerAPI, 'pxt-cloud.chat');
     }
 
     public newMessage(msg: string | API.MessageData, cb?: API.AckCallback<void>, socket?: SocketIO.Socket): boolean {

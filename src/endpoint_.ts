@@ -14,6 +14,15 @@ import * as API from './api';
 
 const debug = require('debug')('pxt-cloud:endpoint');
 
+export interface IEndpointConstructor {
+    new (
+        publicAPI: API.PublicAPI,
+        redisAPI: RedisAPI,
+        socketServerAPI: SocketServerAPI,
+        nsp?: string,
+    ): Endpoint;
+}
+
 export class Endpoint extends EventEmitter implements API.EventAPI {
     public static userId = Endpoint.connectId;
 
@@ -21,24 +30,25 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         return socket ? socket.id : 'localhost';
     }
 
-    private _socketNamespace: SocketIO.Namespace | null = null;
+    private _publicAPI: API.PublicAPI;
     private _redisAPI: RedisAPI;
-
-    protected get socketNamespace(): SocketIO.Namespace | null {
-        return this._socketNamespace;
-    }
 
     protected get redisAPI(): RedisAPI {
         return this._redisAPI;
     }
 
-    constructor(socketServerAPI: SocketServerAPI, redisAPI: RedisAPI, nsp?: string) {
+    constructor(
+        publicAPI: API.PublicAPI,
+        redisAPI: RedisAPI,
+        socketServerAPI: SocketServerAPI,
+        nsp?: string,
+    ) {
         super();
 
-        const socketNamespace = socketServerAPI.of(`/${nsp || ''}`);
-        this._socketNamespace = socketNamespace;
-
+        this._publicAPI = publicAPI;
         this._redisAPI = redisAPI;
+
+        const socketNamespace = socketServerAPI.of(`/${nsp || ''}`);
 
         socketNamespace.on('connect', (socket: SocketIO.Socket) => {
             debug(`${socket.id} client connected from ${socket.handshake.address}`);

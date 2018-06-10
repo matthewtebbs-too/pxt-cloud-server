@@ -23,7 +23,7 @@ interface HttpServerWithShutdown extends Http.Server {
     shutdown(listener?: () => void): void;
 }
 
-class Server implements API.ServerAPI {
+class Server {
     private static _singleton = new Server();
 
     private static _handler(request: Http.IncomingMessage, response: Http.ServerResponse) {
@@ -41,29 +41,15 @@ class Server implements API.ServerAPI {
         return this._singleton;
     }
 
-    public get chatAPI(): API.ChatAPI | null {
-        return this._endpoints.chat as API.EventAPI as API.ChatAPI;
-    }
-
-    public get usersAPI(): API.UsersAPI | null {
-        return this._endpoints.users as API.EventAPI as API.UsersAPI;
-    }
-
-    public get worldAPI(): API.WorldAPI | null {
-        return this._endpoints.world as API.EventAPI as API.WorldAPI;
+    public get publicAPI() {
+        return this._publicAPI;
     }
 
     protected _httpServer: HttpServerWithShutdown | null = null;
-
     protected _socketServer: SocketServer | null = null;
-
     protected _redisClient: RedisClient | null = null;
 
-    protected _endpoints: {[key: string]: Endpoints.Endpoint | null} = {
-        chat: null,
-        users: null,
-        world: null,
-    };
+    protected _publicAPI: API.PublicAPI = { public: null };
 
     public start(port_: number = ServerConfig.port, host_: string = ServerConfig.host): Promise<this> {
         this.dispose();
@@ -77,16 +63,16 @@ class Server implements API.ServerAPI {
                 debug(`listening on ${host_} at port ${port_}`);
 
                 this._socketServer = new SocketServer(this._httpServer);
-
                 this._redisClient = new RedisClient();
 
                 this._redisClient.connect()
-                    .then(client => {
-                        this._endpoints = {
-                            chat: new Endpoints.ChatEndpoint(this._socketServer!.socketAPI!, client.redisAPI!),
-                            users: new Endpoints.UsersEndpoint(this._socketServer!.socketAPI!, client.redisAPI!),
-                            world: new Endpoints.WorldEndpoint(this._socketServer!.socketAPI!, client.redisAPI!),
-                        };
+                    .then(() => {
+                        this._publicAPI.public = this.publicAPI;
+
+                        this._createAPI('users', Endpoints.UsersEndpoint);
+                        this._createAPI('chat', Endpoints.ChatEndpoint);
+                        this._createAPI('world', Endpoints.WorldEndpoint);
+
                         resolve(this);
                     })
                     .catch(err => reject(err));
@@ -100,6 +86,10 @@ class Server implements API.ServerAPI {
     }
 
     public dispose() {
+        this._disposeAPI('world');
+        this._disposeAPI('chat');
+        this._disposeAPI('users');
+
         if (this._socketServer) {
             this._socketServer.dispose();
             this._socketServer = null;
@@ -115,12 +105,31 @@ class Server implements API.ServerAPI {
             this._httpServer = null;
         }
     }
+
+    protected _createAPI<T extends keyof API.PublicAPI>(name: T, ctor: Endpoints.IEndpointConstructor): boolean {
+        const socketAPI = this._socketServer ? this._socketServer.socketAPI : null;
+        const redisAPI = this._redisClient ? this._redisClient.redisAPI : null;
+
+        if (!socketAPI || !redisAPI) {
+            return false;
+        }
+
+        this._publicAPI[name] = new ctor(this.publicAPI, redisAPI, socketAPI);
+
+        return true;
+    }
+
+    protected _disposeAPI<T extends keyof API.PublicAPI>(name: T) {
+        if (name in this._publicAPI) {
+            delete this._publicAPI[name];
+        }
+    }
 }
 
 process.on('SIGINT', () => {
     Server.singleton.dispose();
 });
 
-export function startServer(port?: number, host?: string): Promise<API.ServerAPI> {
-    return Server.singleton.start(port, host);
+export function startServer(port?: number, host?: string): Promise<API.PublicAPI> {
+    return Server.singleton.start(port, host).then(server => server.publicAPI);
 }

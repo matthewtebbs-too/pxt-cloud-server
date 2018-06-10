@@ -32,6 +32,10 @@ export function mappedAckHandler<S, T>(map: (reply: S) => T, cb?: AckCallback<T>
     return (error: Error | null, reply: S) => ackHandler(cb)(error, map(reply));
 }
 
+export interface EventAPI {
+    on(event: string | symbol, listener: (...args: any[]) => void): this;
+}
+
 export type UserId = string;
 
 // tslint:disable-next-line:interface-over-type-literal
@@ -54,10 +58,6 @@ export interface UsersAPI extends EventAPI {
     removeSelf(cb?: AckCallback<boolean>): boolean;
 }
 
-export interface EventAPI {
-    on(event: string | symbol, listener: (...args: any[]) => void): this;
-}
-
 // tslint:disable-next-line:interface-over-type-literal
 export type MessageData = {
     text: string;
@@ -76,23 +76,12 @@ export interface ChatAPI extends EventAPI {
 export interface WorldAPI extends EventAPI {
 }
 
-export interface EndpontMap {
-    'chat': ChatAPI;
-    'users': UsersAPI;
-    'world': WorldAPI;
+export interface PublicAPI {
+    public: PublicAPI | null;
+
+    chat?: ChatAPI;
+    users?: UsersAPI;
+    world?: WorldAPI;
 }
 
-export interface ServerAPI {
-    //endpoint<T extends keyof EndpontMap>(name: T): EndpontMap[T];
-    chatAPI: ChatAPI | null;
-    usersAPI: UsersAPI | null;
-    worldAPI: WorldAPI | null;
-}
-
-export interface ServerAPI {
-    chatAPI: ChatAPI | null;
-    usersAPI: UsersAPI | null;
-    worldAPI: WorldAPI | null;
-}
-
-export declare function startServer(port?: number, host?: string): Promise<ServerAPI>;
+export declare function startServer(port?: number, host?: string): Promise<PublicAPI>;

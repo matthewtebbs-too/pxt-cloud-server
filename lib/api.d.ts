@@ -6,6 +6,9 @@ export declare type AckCallback<T> = (ack: Ack<T>) => void;
 export declare function ackHandler<T>(cb?: AckCallback<T>): (error: Error | null, reply: T) => void;
 export declare const ackHandlerVoid: (cb?: AckCallback<void> | undefined) => void;
 export declare function mappedAckHandler<S, T>(map: (reply: S) => T, cb?: AckCallback<T>): (error: Error | null, reply: S) => void;
+export interface EventAPI {
+    on(event: string | symbol, listener: (...args: any[]) => void): this;
+}
 export declare type UserId = string;
 export declare type UserData = {
     name: string;
@@ -15,9 +18,6 @@ export interface UsersAPI extends EventAPI {
     addSelf(user: UserData, cb?: AckCallback<boolean>): boolean;
     removeSelf(cb?: AckCallback<boolean>): boolean;
 }
-export interface EventAPI {
-    on(event: string | symbol, listener: (...args: any[]) => void): this;
-}
 export declare type MessageData = {
     text: string;
 };
@@ -26,19 +26,10 @@ export interface ChatAPI extends EventAPI {
 }
 export interface WorldAPI extends EventAPI {
 }
-export interface EndpontMap {
-    'chat': ChatAPI;
-    'users': UsersAPI;
-    'world': WorldAPI;
+export interface PublicAPI {
+    public: PublicAPI | null;
+    chat?: ChatAPI;
+    users?: UsersAPI;
+    world?: WorldAPI;
 }
-export interface ServerAPI {
-    chatAPI: ChatAPI | null;
-    usersAPI: UsersAPI | null;
-    worldAPI: WorldAPI | null;
-}
-export interface ServerAPI {
-    chatAPI: ChatAPI | null;
-    usersAPI: UsersAPI | null;
-    worldAPI: WorldAPI | null;
-}
-export declare function startServer(port?: number, host?: string): Promise<ServerAPI>;
+export declare function startServer(port?: number, host?: string): Promise<PublicAPI>;
