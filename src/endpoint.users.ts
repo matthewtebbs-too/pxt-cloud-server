@@ -77,8 +77,8 @@ export class UsersEndpoint extends Endpoint implements UsersAPI {
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on('self info', (cb?: AckCallback<UserData>) => this.selfInfo(cb, socket));
-        socket.on('add self', (user: UserData, cb?: AckCallback<boolean>) => this.addSelf(user, cb, socket));
-        socket.on('remove self', (cb?: AckCallback<boolean>) => this.removeSelf(cb, socket));
+        socket.on('self info', (cb) => this.selfInfo(cb, socket));
+        socket.on('add self', (user, cb) => this.addSelf(user, cb, socket));
+        socket.on('remove self', (cb) => this.removeSelf(cb, socket));
     }
 }
