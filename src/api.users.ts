@@ -23,7 +23,6 @@ export type UserData = {
     'remove self'
 */
 
-// tslint:disable-next-line:interface-name
 export interface UsersAPI extends EventAPI {
     selfInfo(cb?: AckCallback<UserData>): boolean;
     addSelf(user: UserData, cb?: AckCallback<boolean>): boolean;

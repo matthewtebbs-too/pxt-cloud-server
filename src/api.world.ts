@@ -7,6 +7,5 @@
 
 import { AckCallback, EventAPI } from './api.base';
 
-// tslint:disable-next-line:interface-name
 export interface WorldAPI extends EventAPI {
 }

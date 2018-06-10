@@ -18,7 +18,6 @@ export type MessageData = {
     'new message'
 */
 
-// tslint:disable-next-line:interface-name
 export interface ChatAPI extends EventAPI {
     newMessage(msg: string | MessageData, cb?: AckCallback<void>): boolean;
 }

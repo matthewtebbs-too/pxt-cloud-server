@@ -22,9 +22,8 @@ import { SocketServer } from './socket.server';
 
 const debug = require('debug')('pxt-cloud:server');
 
-// tslint:disable-next-line:interface-name class-name
-interface Http_ServerWithShutdown extends Http.Server {
-    withShutdown(): Http_ServerWithShutdown;
+interface HttpServerWithShutdown extends Http.Server {
+    withShutdown(): this;
     shutdown(listener?: () => void): void;
 }
 
@@ -46,7 +45,7 @@ class Server implements ServerAPI {
         return this._singleton;
     }
 
-    public get httpServer(): Http_ServerWithShutdown | null {
+    public get httpServer(): HttpServerWithShutdown | null {
         return this._httpServer;
     }
 
@@ -70,7 +69,7 @@ class Server implements ServerAPI {
         return this._endpoints.world as EventAPI as WorldAPI;
     }
 
-    protected _httpServer: Http_ServerWithShutdown | null = null;
+    protected _httpServer: HttpServerWithShutdown | null = null;
 
     protected _socketServer: SocketServer | null = null;
 
@@ -86,7 +85,7 @@ class Server implements ServerAPI {
         this.dispose();
 
         return new Promise((resolve, reject) => {
-            this._httpServer = (Http.createServer(Server._handler) as any as Http_ServerWithShutdown).withShutdown();
+            this._httpServer = (Http.createServer(Server._handler) as any as HttpServerWithShutdown).withShutdown();
 
             this._httpServer.listen(port_, host_, () => {
                 this._httpServer!.on('close', () => debug(`closed`));

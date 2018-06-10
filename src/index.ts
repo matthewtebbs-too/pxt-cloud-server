@@ -13,7 +13,6 @@ export * from './api.chat';
 export * from './api.users';
 export * from './api.world';
 
-// tslint:disable-next-line:interface-name
 export interface ServerAPI {
     chatAPI: ChatAPI | null;
     usersAPI: UsersAPI | null;

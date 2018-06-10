@@ -7,7 +7,6 @@
 
 const debug = require('debug')('pxt-cloud:api.base');
 
-// tslint:disable-next-line:interface-name
 export interface Ack<T> {
     readonly error: Error | null;
     readonly reply: T;
@@ -33,7 +32,6 @@ export function mappedAckHandler<S, T>(map: (reply: S) => T, cb?: AckCallback<T>
     return (error: Error | null, reply: S) => ackHandler(cb)(error, map(reply));
 }
 
-// tslint:disable-next-line:interface-name
 export interface EventAPI {
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 }
