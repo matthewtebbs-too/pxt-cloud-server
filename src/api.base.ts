@@ -10,21 +10,27 @@ const debug = require('debug')('pxt-cloud:api.base');
 // tslint:disable-next-line:interface-name
 export interface Ack<T> {
     readonly error: Error | null;
-    readonly reply: T | any[] | undefined;
+    readonly reply: T;
 }
 
 export type AckCallback<T> = (ack: Ack<T>) => void;
 
-export function ackHandler<S, T>(cb?: AckCallback<T>, fn?: (reply?: S) => T) {
-    return (err: Error | null = null, reply?: S) => {
+export function ackHandler<T>(cb?: AckCallback<T>) {
+    return (error: Error | null, reply: T) => {
         if (cb) {
-            cb({ error: err, reply: fn ? fn(reply) : reply as any as T});
+            cb({ error, reply });
         }
 
-        if (err) {
-            debug(err);
+        if (error) {
+            debug(error);
         }
     };
+}
+
+export const ackHandlerVoid = (cb?: AckCallback<void>) => ackHandler<void>(cb)(null, undefined);
+
+export function mappedAckHandler<S, T>(map: (reply: S) => T, cb?: AckCallback<T>) {
+    return (error: Error | null, reply: S) => ackHandler<T>(cb)(error, map(reply));
 }
 
 // tslint:disable-next-line:interface-name

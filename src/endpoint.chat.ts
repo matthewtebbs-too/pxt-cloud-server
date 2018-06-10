@@ -7,7 +7,7 @@
 
 import * as SocketIO from 'socket.io';
 
-import { AckCallback, ackHandler } from './api.base';
+import { AckCallback, ackHandler, ackHandlerVoid } from './api.base';
 import { ChatAPI, MessageData } from './api.chat';
 import { RedisAPI } from './client.redis';
 import { Endpoint } from './endpoint.base';
@@ -30,7 +30,7 @@ export class ChatEndpoint extends Endpoint implements ChatAPI {
         const result = this._broadcastEvent('new message', typeof msg === 'object' ? msg : { text: msg }, socket);
 
         if (result) {
-            ackHandler<void, void>(cb)();
+            ackHandlerVoid(cb);
         }
 
         return result;

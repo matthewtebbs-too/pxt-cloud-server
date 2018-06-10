@@ -7,7 +7,7 @@
 
 import * as SocketIO from 'socket.io';
 
-import { AckCallback, ackHandler } from './api.base';
+import { AckCallback, ackHandler, mappedAckHandler } from './api.base';
 import { UserData, UsersAPI } from './api.users';
 import { RedisAPI } from './client.redis';
 import { Endpoint } from './endpoint.base';
@@ -31,11 +31,11 @@ export class UsersEndpoint extends Endpoint implements UsersAPI {
         const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
 
-        return this.redisAPI.hgetall(userkey, ackHandler<{ [key: string]: string }, UserData>(cb, reply => {
+        return this.redisAPI.hgetall(userkey, mappedAckHandler<{ [key: string]: string }, UserData>(reply => {
             return { /* sanitize data */
                 name: reply && reply.name ? reply.name : '',
             };
-        }));
+        }, cb));
     }
 
     public addSelf(user: UserData, cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
@@ -48,30 +48,30 @@ export class UsersEndpoint extends Endpoint implements UsersAPI {
                 name: user.name || '',
             });
 
-        return multi.exec(ackHandler<any[], boolean>(cb, reply => {
-            const existed = !!reply && reply[0]; /* reply from exists */
+        return multi.exec(mappedAckHandler<any[], boolean>(reply => {
+            const existed = !!reply && reply[0] as boolean; /* reply from exists */
 
             if (!existed) {
                 this._broadcastEvent('user joined', userId, user, socket);
             }
 
             return existed;
-        }));
+        }, cb));
     }
 
     public removeSelf(cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
         const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
 
-        return this.redisAPI.del(userkey, ackHandler<number, boolean>(cb, reply => {
-            const existed = !!reply && 1 === reply[0]; /* reply from del */
+        return this.redisAPI.del(userkey, mappedAckHandler<number, boolean>(reply => {
+            const existed = !!reply; /* reply from del */
 
             if (existed) {
                 this._broadcastEvent('user left', userId, socket);
             }
 
             return existed;
-        }));
+        }, cb));
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {

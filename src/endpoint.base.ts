@@ -47,8 +47,8 @@ export class Endpoint extends EventEmitter implements EventAPI {
             this._onClientConnect(socket);
         });
 
-        socketNamespace.on('error', (err: Error) => {
-            debug(err);
+        socketNamespace.on('error', (error: Error) => {
+            debug(error);
         });
     }
 
