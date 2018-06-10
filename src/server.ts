@@ -9,16 +9,12 @@ import * as Http from 'http';
 require('http-shutdown').extend();
 import * as Path from 'path';
 
-import { RedisAPI, RedisClient } from './client.redis';
-
-import { Endpoint, EventAPI } from './endpoint.base';
-import { ChatAPI, ChatEndpoint } from './endpoint.chat';
-import { UsersAPI, UsersEndpoint } from './endpoint.users';
-import { WorldAPI, WorldEndpoint } from './endpoint.world';
-
-import { ServerAPI } from './server.api';
+import { RedisClient } from './client.redis';
 import { ServerConfig } from './server.config';
 import { SocketServer } from './socket.server';
+
+import * as API from './api';
+import * as Endpoints from './endpoints';
 
 const debug = require('debug')('pxt-cloud:server');
 
@@ -27,7 +23,7 @@ interface HttpServerWithShutdown extends Http.Server {
     shutdown(listener?: () => void): void;
 }
 
-class Server implements ServerAPI {
+class Server implements API.ServerAPI {
     private static _singleton = new Server();
 
     private static _handler(request: Http.IncomingMessage, response: Http.ServerResponse) {
@@ -45,16 +41,16 @@ class Server implements ServerAPI {
         return this._singleton;
     }
 
-    public get chatAPI(): ChatAPI | null {
-        return this._endpoints.chat as EventAPI as ChatAPI;
+    public get chatAPI(): API.ChatAPI | null {
+        return this._endpoints.chat as API.EventAPI as API.ChatAPI;
     }
 
-    public get usersAPI(): UsersAPI | null {
-        return this._endpoints.users as EventAPI as UsersAPI;
+    public get usersAPI(): API.UsersAPI | null {
+        return this._endpoints.users as API.EventAPI as API.UsersAPI;
     }
 
-    public get worldAPI(): WorldAPI | null {
-        return this._endpoints.world as EventAPI as WorldAPI;
+    public get worldAPI(): API.WorldAPI | null {
+        return this._endpoints.world as API.EventAPI as API.WorldAPI;
     }
 
     protected _httpServer: HttpServerWithShutdown | null = null;
@@ -63,7 +59,7 @@ class Server implements ServerAPI {
 
     protected _redisClient: RedisClient | null = null;
 
-    protected _endpoints: {[key: string]: Endpoint | null} = {
+    protected _endpoints: {[key: string]: Endpoints.Endpoint | null} = {
         chat: null,
         users: null,
         world: null,
@@ -87,9 +83,9 @@ class Server implements ServerAPI {
                 this._redisClient.connect()
                     .then(client => {
                         this._endpoints = {
-                            chat: new ChatEndpoint(this._socketServer!.socketAPI!, client.redisAPI!),
-                            users: new UsersEndpoint(this._socketServer!.socketAPI!, client.redisAPI!),
-                            world: new WorldEndpoint(this._socketServer!.socketAPI!, client.redisAPI!),
+                            chat: new Endpoints.ChatEndpoint(this._socketServer!.socketAPI!, client.redisAPI!),
+                            users: new Endpoints.UsersEndpoint(this._socketServer!.socketAPI!, client.redisAPI!),
+                            world: new Endpoints.WorldEndpoint(this._socketServer!.socketAPI!, client.redisAPI!),
                         };
                         resolve(this);
                     })
@@ -125,6 +121,6 @@ process.on('SIGINT', () => {
     Server.singleton.dispose();
 });
 
-export function startServer(port?: number, host?: string): Promise<ServerAPI> {
+export function startServer(port?: number, host?: string): Promise<API.ServerAPI> {
     return Server.singleton.start(port, host);
 }

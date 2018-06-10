@@ -7,13 +7,11 @@
 
 import * as SocketIO from 'socket.io';
 
-import { AckCallback, ackHandler, ackHandlerVoid } from './api.base';
-import { ChatAPI, MessageData } from './api.chat';
 import { RedisAPI } from './client.redis';
-import { Endpoint } from './endpoint.base';
+import { Endpoint } from './endpoint_';
 import { SocketServerAPI } from './socket.server';
 
-export { ChatAPI, MessageData } from './api.chat';
+import * as API from './api';
 
 const debug = require('debug')('pxt-cloud:endpoint.chat');
 
@@ -21,16 +19,16 @@ const debug = require('debug')('pxt-cloud:endpoint.chat');
 const ChatDBKeys = {
 };
 
-export class ChatEndpoint extends Endpoint implements ChatAPI {
+export class ChatEndpoint extends Endpoint implements API.ChatAPI {
     constructor(socketServerAPI: SocketServerAPI, redisAPI: RedisAPI) {
         super(socketServerAPI, redisAPI, 'pxt-cloud.chat');
     }
 
-    public newMessage(msg: string | MessageData, cb?: AckCallback<void>, socket?: SocketIO.Socket): boolean {
+    public newMessage(msg: string | API.MessageData, cb?: API.AckCallback<void>, socket?: SocketIO.Socket): boolean {
         const result = this._broadcastEvent('new message', typeof msg === 'object' ? msg : { text: msg }, socket);
 
         if (result) {
-            ackHandlerVoid(cb);
+            API.ackHandlerVoid(cb);
         }
 
         return result;
@@ -39,6 +37,6 @@ export class ChatEndpoint extends Endpoint implements ChatAPI {
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on('new message', (msg: MessageData, cb?: AckCallback<void>) => this.newMessage(msg, cb, socket));
+        socket.on('new message', (msg: API.MessageData, cb?: API.AckCallback<void>) => this.newMessage(msg, cb, socket));
     }
 }

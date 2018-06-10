@@ -7,13 +7,11 @@
 
 import * as SocketIO from 'socket.io';
 
-import { AckCallback, ackHandler } from './api.base';
-import { WorldAPI } from './api.world';
 import { RedisAPI } from './client.redis';
-import { Endpoint } from './endpoint.base';
+import { Endpoint } from './endpoint_';
 import { SocketServerAPI } from './socket.server';
 
-export { WorldAPI } from './api.world';
+import * as API from './api';
 
 const debug = require('debug')('pxt-cloud:endpoint.world');
 
@@ -21,7 +19,7 @@ const debug = require('debug')('pxt-cloud:endpoint.world');
 const WorldDBKeys = {
 };
 
-export class WorldEndpoint extends Endpoint implements WorldAPI {
+export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     constructor(socketServerAPI: SocketServerAPI, redisAPI: RedisAPI) {
         super(socketServerAPI, redisAPI, 'pxt-cloud.world');
     }

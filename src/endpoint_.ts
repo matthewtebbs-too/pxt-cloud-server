@@ -7,15 +7,14 @@
 import { EventEmitter } from 'events';
 import * as SocketIO from 'socket.io';
 
-import { EventAPI } from './api.base';
 import { RedisAPI } from './client.redis';
 import { SocketServerAPI } from './socket.server';
 
-export { EventAPI } from './api.base';
+import * as API from './api';
 
 const debug = require('debug')('pxt-cloud:endpoint');
 
-export class Endpoint extends EventEmitter implements EventAPI {
+export class Endpoint extends EventEmitter implements API.EventAPI {
     public static userId = Endpoint.connectId;
 
     public static connectId(socket?: SocketIO.Socket) {

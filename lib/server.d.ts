@@ -1,2 +1,2 @@
-import { ServerAPI } from './server.api';
-export declare function startServer(port?: number, host?: string): Promise<ServerAPI>;
+import * as API from './api';
+export declare function startServer(port?: number, host?: string): Promise<API.ServerAPI>;

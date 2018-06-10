@@ -7,13 +7,11 @@
 
 import * as SocketIO from 'socket.io';
 
-import { AckCallback, ackHandler, mappedAckHandler } from './api.base';
-import { UserData, UsersAPI } from './api.users';
 import { RedisAPI } from './client.redis';
-import { Endpoint } from './endpoint.base';
+import { Endpoint } from './endpoint_';
 import { SocketServerAPI } from './socket.server';
 
-export { UsersAPI } from './api.users';
+import * as API from './api';
 
 const debug = require('debug')('pxt-cloud:endpoint.users');
 
@@ -22,23 +20,23 @@ const UsersDBKeys = {
     user: (sockid: string) => `user:${sockid}`,
 };
 
-export class UsersEndpoint extends Endpoint implements UsersAPI {
+export class UsersEndpoint extends Endpoint implements API.UsersAPI {
     constructor(socketServerAPI: SocketServerAPI, redisAPI: RedisAPI) {
         super(socketServerAPI, redisAPI, 'pxt-cloud.users');
     }
 
-    public selfInfo(cb?: AckCallback<UserData>, socket?: SocketIO.Socket): boolean {
+    public selfInfo(cb?: API.AckCallback<API.UserData>, socket?: SocketIO.Socket): boolean {
         const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
 
-        return this.redisAPI.hgetall(userkey, mappedAckHandler(reply => {
+        return this.redisAPI.hgetall(userkey, API.mappedAckHandler(reply => {
             return { /* sanitize data */
                 name: reply && reply.name ? reply.name : '',
             };
         }, cb));
     }
 
-    public addSelf(user: UserData, cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
+    public addSelf(user: API.UserData, cb?: API.AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
         const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
 
@@ -48,7 +46,7 @@ export class UsersEndpoint extends Endpoint implements UsersAPI {
                 name: user.name || '',
             });
 
-        return multi.exec(mappedAckHandler(reply => {
+        return multi.exec(API.mappedAckHandler(reply => {
             const existed = !!reply && reply[0] as boolean; /* reply from exists */
 
             if (!existed) {
@@ -59,11 +57,11 @@ export class UsersEndpoint extends Endpoint implements UsersAPI {
         }, cb));
     }
 
-    public removeSelf(cb?: AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
+    public removeSelf(cb?: API.AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
         const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
 
-        return this.redisAPI.del(userkey, mappedAckHandler(reply => {
+        return this.redisAPI.del(userkey, API.mappedAckHandler(reply => {
             const existed = !!reply; /* reply from del */
 
             if (existed) {

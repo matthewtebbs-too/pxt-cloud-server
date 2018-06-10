@@ -1,11 +1,10 @@
 /// <reference types="node" />
 import { EventEmitter } from 'events';
 import * as SocketIO from 'socket.io';
-import { EventAPI } from './api.base';
 import { RedisAPI } from './client.redis';
 import { SocketServerAPI } from './socket.server';
-export { EventAPI } from './api.base';
-export declare class Endpoint extends EventEmitter implements EventAPI {
+import * as API from './api';
+export declare class Endpoint extends EventEmitter implements API.EventAPI {
     static userId: typeof Endpoint.connectId;
     static connectId(socket?: SocketIO.Socket): string;
     private _socketNamespace;
