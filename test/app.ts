@@ -9,8 +9,9 @@ import * as PxtCloud from '..';
 const debug = require('debug')('pxt-cloud:app');
 
 function test(api: PxtCloud.PublicAPI) {
-    api.users!.addSelf({ name: 'Billy Bob' }, debug);
-    api.users!.selfInfo(debug);
+    api.users!.addSelfAsync({ name: 'Billy Bob' }).then(debug).catch(debug);
+    api.users!.selfInfoAsync().then(debug).catch(debug);
+    api.chat!.newMessageAsync('foo').then(debug).catch(debug);
 }
 
 PxtCloud.startServer().then(api => test(api)).catch(debug);

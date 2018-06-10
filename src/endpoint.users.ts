@@ -38,6 +38,10 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         }, cb));
     }
 
+    public selfInfoAsync(socket?: SocketIO.Socket): Promise<API.UserData> {
+        return API.promisefy(this, this.selfInfo, socket);
+    }
+
     public addSelf(user: API.UserData, cb?: API.AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
         const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
@@ -59,6 +63,10 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         }, cb));
     }
 
+    public addSelfAsync(user: API.UserData, socket?: SocketIO.Socket): Promise<boolean> {
+        return API.promisefy(this, this.addSelf, user, socket);
+    }
+
     public removeSelf(cb?: API.AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
         const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
@@ -72,6 +80,10 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
 
             return existed;
         }, cb));
+    }
+
+    public removeSelfAsync(socket?: SocketIO.Socket): Promise<boolean> {
+        return API.promisefy(this, this.removeSelf, socket);
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {

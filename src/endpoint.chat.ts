@@ -31,10 +31,14 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
         const result = this._broadcastEvent('new message', typeof msg === 'object' ? msg : { text: msg }, socket);
 
         if (result) {
-            API.ackHandlerVoid(cb);
+            API.ackHandler(cb);
         }
 
         return result;
+    }
+
+    public newMessageAsync(msg: string | API.MessageData, socket?: SocketIO.Socket): Promise<void> {
+        return API.promisefy(this, this.newMessage, msg, socket);
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {

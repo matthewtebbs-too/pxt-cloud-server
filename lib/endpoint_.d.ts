@@ -14,7 +14,7 @@ export declare class Endpoint extends EventEmitter implements API.EventAPI {
     protected readonly publicAPI: API.PublicAPI;
     protected readonly redisClient: Redis.RedisClient;
     constructor(publicAPI: API.PublicAPI, redisClient: Redis.RedisClient, socketServer: SocketIO.Server, nsp?: string);
-    protected _broadcastEvent(event: string, ...args: any[]): boolean;
+    protected _broadcastEvent(event: string, ...args_: any[]): boolean;
     protected _onClientConnect(socket: SocketIO.Socket): void;
     protected _onClientDisconnect(socket: SocketIO.Socket): void;
 }

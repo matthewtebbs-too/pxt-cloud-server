@@ -63,19 +63,8 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         });
     }
 
-    protected _broadcastEvent(event: string, ...args: any[]): boolean {
-        let socket: SocketIO.Socket | null = null;
-
-        if (args.length > 0) {
-            const lastindex = args.length - 1;
-            const last = args[lastindex];
-
-            if (undefined === last || (typeof last === 'object' && 'broadcast' in last)) {
-                socket = last;
-
-                args = args.slice(0, -1);
-            }
-        }
+    protected _broadcastEvent(event: string, ...args_: any[]): boolean {
+        const [ args, socket ] = API.extractSocketFromArgs(args_);
 
         if (socket) {
             if (!socket.broadcast.emit(event, ...args)) {
