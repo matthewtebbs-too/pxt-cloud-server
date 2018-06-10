@@ -5,10 +5,8 @@
 */
 
 import { EventEmitter } from 'events';
+import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
-
-import { RedisAPI } from './client.redis';
-import { SocketServerAPI } from './socket.server';
 
 import * as API from './api';
 
@@ -17,8 +15,8 @@ const debug = require('debug')('pxt-cloud:endpoint');
 export interface IEndpointConstructor {
     new (
         publicAPI: API.PublicAPI,
-        redisAPI: RedisAPI,
-        socketServerAPI: SocketServerAPI,
+        redisClient: Redis.RedisClient,
+        socketServer: SocketIO.Server,
         nsp?: string,
     ): Endpoint;
 }
@@ -31,24 +29,28 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
     }
 
     private _publicAPI: API.PublicAPI;
-    private _redisAPI: RedisAPI;
+    private _redisClient: Redis.RedisClient;
 
-    protected get redisAPI(): RedisAPI {
-        return this._redisAPI;
+    protected get publicAPI() {
+        return this._publicAPI;
+    }
+
+    protected get redisClient() {
+        return this._redisClient;
     }
 
     constructor(
         publicAPI: API.PublicAPI,
-        redisAPI: RedisAPI,
-        socketServerAPI: SocketServerAPI,
+        redisClient: Redis.RedisClient,
+        socketServer: SocketIO.Server,
         nsp?: string,
     ) {
         super();
 
         this._publicAPI = publicAPI;
-        this._redisAPI = redisAPI;
+        this._redisClient = redisClient;
 
-        const socketNamespace = socketServerAPI.of(`/${nsp || ''}`);
+        const socketNamespace = socketServer.of(`/${nsp || ''}`);
 
         socketNamespace.on('connect', (socket: SocketIO.Socket) => {
             debug(`${socket.id} client connected from ${socket.handshake.address}`);

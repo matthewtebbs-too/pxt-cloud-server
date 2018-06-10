@@ -5,13 +5,11 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
+import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
-import { RedisAPI } from './client.redis';
-import { Endpoint } from './endpoint_';
-import { SocketServerAPI } from './socket.server';
-
 import * as API from './api';
+import { Endpoint } from './endpoint_';
 
 const debug = require('debug')('pxt-cloud:endpoint.chat');
 
@@ -22,13 +20,14 @@ const ChatDBKeys = {
 export class ChatEndpoint extends Endpoint implements API.ChatAPI {
     constructor(
         publicAPI: API.PublicAPI,
-        redisAPI: RedisAPI,
-        socketServerAPI: SocketServerAPI,
+        redisClient: Redis.RedisClient,
+        socketServer: SocketIO.Server,
     ) {
-        super(publicAPI, redisAPI, socketServerAPI, 'pxt-cloud.chat');
+        super(publicAPI, redisClient, socketServer, 'pxt-cloud.chat');
     }
 
     public newMessage(msg: string | API.MessageData, cb?: API.AckCallback<void>, socket?: SocketIO.Socket): boolean {
+        const user = this.publicAPI.users!.selfInfo();
         const result = this._broadcastEvent('new message', typeof msg === 'object' ? msg : { text: msg }, socket);
 
         if (result) {

@@ -5,13 +5,11 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
+import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
-import { RedisAPI } from './client.redis';
-import { Endpoint } from './endpoint_';
-import { SocketServerAPI } from './socket.server';
-
 import * as API from './api';
+import { Endpoint } from './endpoint_';
 
 const debug = require('debug')('pxt-cloud:endpoint.world');
 
@@ -22,9 +20,9 @@ const WorldDBKeys = {
 export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     constructor(
         publicAPI: API.PublicAPI,
-        redisAPI: RedisAPI,
-        socketServerAPI: SocketServerAPI,
+        redisClient: Redis.RedisClient,
+        socketServer: SocketIO.Server,
     ) {
-        super(publicAPI, redisAPI, socketServerAPI, 'pxt-cloud.world');
+        super(publicAPI, redisClient, socketServer, 'pxt-cloud.world');
     }
 }

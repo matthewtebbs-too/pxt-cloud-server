@@ -107,14 +107,14 @@ class Server {
     }
 
     protected _createAPI<T extends keyof API.PublicAPI>(name: T, ctor: Endpoints.IEndpointConstructor): boolean {
-        const socketAPI = this._socketServer ? this._socketServer.socketAPI : null;
-        const redisAPI = this._redisClient ? this._redisClient.redisAPI : null;
+        const redisClient = this._redisClient ? this._redisClient.client : null;
+        const socketServer = this._socketServer ? this._socketServer.server : null;
 
-        if (!socketAPI || !redisAPI) {
+        if (!redisClient || !socketServer) {
             return false;
         }
 
-        this._publicAPI[name] = new ctor(this.publicAPI, redisAPI, socketAPI);
+        this._publicAPI[name] = new ctor(this.publicAPI, redisClient, socketServer);
 
         return true;
     }

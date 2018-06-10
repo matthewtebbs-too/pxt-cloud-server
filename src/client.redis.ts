@@ -12,8 +12,6 @@ import { ServerConfig } from './server.config';
 
 const debug = require('debug')('pxt-cloud:redis');
 
-export type RedisAPI = Redis.RedisClient;
-
 export class RedisClient extends EventEmitter {
     /* Reference: https://github.com/NodeRedis/node_redis */
     private static _retrystrategy(options: Redis.RetryStrategyOptions): number | Error {
@@ -35,7 +33,7 @@ export class RedisClient extends EventEmitter {
         return Math.min(options.attempt * 100, 3000);
     }
 
-    public get redisAPI(): RedisAPI |  null {
+    public get client(): Redis.RedisClient |  null {
         return this._redis;
     }
 

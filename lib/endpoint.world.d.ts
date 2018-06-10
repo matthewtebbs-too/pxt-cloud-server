@@ -1,7 +1,7 @@
-import { RedisAPI } from './client.redis';
-import { Endpoint } from './endpoint_';
-import { SocketServerAPI } from './socket.server';
+import * as Redis from 'redis';
+import * as SocketIO from 'socket.io';
 import * as API from './api';
+import { Endpoint } from './endpoint_';
 export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
-    constructor(publicAPI: API.PublicAPI, redisAPI: RedisAPI, socketServerAPI: SocketServerAPI);
+    constructor(publicAPI: API.PublicAPI, redisClient: Redis.RedisClient, socketServer: SocketIO.Server);
 }

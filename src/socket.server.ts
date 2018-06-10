@@ -9,10 +9,8 @@ import * as SocketIO from 'socket.io';
 
 const debug = require('debug')('pxt-cloud:socket.server');
 
-export type SocketServerAPI = SocketIO.Server;
-
 export class SocketServer {
-    public get socketAPI(): SocketServerAPI | null {
+    public get server(): SocketIO.Server | null {
         return this._socketio;
     }
 
