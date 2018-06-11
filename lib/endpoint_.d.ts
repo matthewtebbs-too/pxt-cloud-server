@@ -9,6 +9,7 @@ export interface IEndpointConstructor {
 export declare class Endpoint extends EventEmitter implements API.EventAPI {
     static userId: typeof Endpoint.connectId;
     static connectId(socket?: SocketIO.Socket): string;
+    protected static _extractSocketFromArgs(args: any[]): [any[], any];
     private _publicAPI;
     private _redisClient;
     protected readonly publicAPI: API.PublicAPI;

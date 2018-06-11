@@ -28,6 +28,22 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         return socket ? socket.id : 'localhost';
     }
 
+    protected static _extractSocketFromArgs(args: any[]): [any[], any ] {
+        let socket;
+
+        if (args.length > 0) {
+            const _socket = args[args.length - 1];
+
+            if (undefined === _socket || (typeof _socket === 'object' && 'broadcast' in _socket)) {
+                socket = _socket;
+
+                args = args.slice(0, -1);
+            }
+        }
+
+        return [ args, socket ];
+    }
+
     private _publicAPI: API.PublicAPI;
     private _redisClient: Redis.RedisClient;
 
@@ -64,7 +80,7 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
     }
 
     protected _broadcastEvent(event: string, ...args_: any[]): boolean {
-        const [ args, socket ] = API.extractSocketFromArgs(args_);
+        const [ args, socket ] = Endpoint._extractSocketFromArgs(args_);
 
         if (socket) {
             if (!socket.broadcast.emit(event, ...args)) {

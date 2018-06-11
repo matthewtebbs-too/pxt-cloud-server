@@ -27,70 +27,86 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         super(publicAPI, redisClient, socketServer, 'pxt-cloud.users');
     }
 
-    public selfInfo(cb?: API.AckCallback<API.UserData>, socket?: SocketIO.Socket): void {
-        const userId = Endpoint.userId(socket);
-        const userkey = UsersDBKeys.user(userId);
+    public selfInfo(socket?: SocketIO.Socket): Promise<API.UserData> {
+        return new Promise((resolve, reject) => {
+            const userId = Endpoint.userId(socket);
+            const userkey = UsersDBKeys.user(userId);
 
-        this.redisClient.hgetall(userkey, API.mappedAckHandler(reply => {
-            return { /* sanitize data */
-                name: reply && reply.name ? reply.name : '',
-            };
-        }, cb));
+            this.redisClient.hgetall(
+                userkey,
+
+                (error, reply) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+
+                    resolve({ /* sanitize data */
+                        name: reply && reply.name ? reply.name : '',
+                    });
+                });
+        });
     }
 
-    public selfInfoAsync(socket?: SocketIO.Socket): Promise<API.UserData> {
-        return API.promisefy(this, this.selfInfo, socket);
+    public addSelf(user: API.UserData, socket?: SocketIO.Socket): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            const userId = Endpoint.userId(socket);
+            const userkey = UsersDBKeys.user(userId);
+
+            const multi = this.redisClient.multi()
+                .exists(userkey)
+                .hmset(userkey, { /* sanitize data */
+                    name: user.name || '',
+                });
+
+            multi.exec(
+                (error, reply) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+
+                    const existed = !!reply && reply[0] as boolean; /* reply from exists */
+
+                    if (!existed) {
+                        this._broadcastEvent('user joined', userId, user, socket);
+                    }
+
+                    resolve(existed);
+                });
+        });
     }
 
-    public addSelf(user: API.UserData, cb?: API.AckCallback<boolean>, socket?: SocketIO.Socket): void {
-        const userId = Endpoint.userId(socket);
-        const userkey = UsersDBKeys.user(userId);
+    public removeSelf(socket?: SocketIO.Socket): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            const userId = Endpoint.userId(socket);
+            const userkey = UsersDBKeys.user(userId);
 
-        const multi = this.redisClient.multi()
-            .exists(userkey)
-            .hmset(userkey, { /* sanitize data */
-                name: user.name || '',
-            });
+            this.redisClient.del(
+                userkey,
 
-        multi.exec(API.mappedAckHandler(reply => {
-            const existed = !!reply && reply[0] as boolean; /* reply from exists */
+                (error, reply) => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
 
-            if (!existed) {
-                this._broadcastEvent('user joined', userId, user, socket);
-            }
+                    const existed = !!reply; /* reply from del */
 
-            return existed;
-        }, cb));
-    }
+                    if (existed) {
+                        this._broadcastEvent('user left', userId, socket);
+                    }
 
-    public addSelfAsync(user: API.UserData, socket?: SocketIO.Socket): Promise<boolean> {
-        return API.promisefy(this, this.addSelf, user, socket);
-    }
-
-    public removeSelf(cb?: API.AckCallback<boolean>, socket?: SocketIO.Socket): void {
-        const userId = Endpoint.userId(socket);
-        const userkey = UsersDBKeys.user(userId);
-
-        this.redisClient.del(userkey, API.mappedAckHandler(reply => {
-            const existed = !!reply; /* reply from del */
-
-            if (existed) {
-                this._broadcastEvent('user left', userId, socket);
-            }
-
-            return existed;
-        }, cb));
-    }
-
-    public removeSelfAsync(socket?: SocketIO.Socket): Promise<boolean> {
-        return API.promisefy(this, this.removeSelf, socket);
+                    resolve(existed);
+                });
+        });
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on('self info', (cb) => this.selfInfo(cb, socket));
-        socket.on('add self', (user, cb) => this.addSelf(user, cb, socket));
-        socket.on('remove self', (cb) => this.removeSelf(cb, socket));
+        socket.on('self info', (cb) => this.selfInfo(socket));
+        socket.on('add self', (user, cb) => this.addSelf(user, socket));
+        socket.on('remove self', (cb) => this.removeSelf(socket));
     }
 }
