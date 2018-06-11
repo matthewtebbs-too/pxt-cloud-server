@@ -81,14 +81,12 @@ class Server {
                 this._socketServer = new SocketServer(this._httpServer);
                 this._redisClient = new RedisClient();
 
-                this._redisClient.connect()
-                    .then(() => {
-                        this._createAPI('users', UsersEndpoint);
-                        this._createAPI('chat', ChatEndpoint);
-                        this._createAPI('world', WorldEndpoint);
+                this._createAPI('users', UsersEndpoint);
+                this._createAPI('chat', ChatEndpoint);
+                this._createAPI('world', WorldEndpoint);
 
-                        resolve(this);
-                    })
+                this._redisClient.connect()
+                    .then(() => resolve(this))
                     .catch(err => reject(err));
             });
 
