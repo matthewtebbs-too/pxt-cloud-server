@@ -9,6 +9,7 @@ import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
 import * as API from './api';
+import { PrivateAPI } from './api_';
 
 const debug = require('debug')('pxt-cloud:endpoint');
 
@@ -18,7 +19,7 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
     public static userId = Endpoint.connectId;
 
     public static connectId(socket?: SocketIO.Socket) {
-        return socket ? socket.id : 'localhost';
+        return socket ? socket.client.id : 'localhost';
     }
 
     protected static _extractSocketFromArgs(args: any[]): [ any[], any ] {
@@ -41,11 +42,11 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         promise.then(value => cb(null, value), cb);
     }
 
-    private _publicAPI: API.PublicAPI;
+    private _privateAPI: PrivateAPI;
     private _redisClient: Redis.RedisClient;
 
-    protected get publicAPI() {
-        return this._publicAPI;
+    protected get privateAPI() {
+        return this._privateAPI;
     }
 
     protected get redisClient() {
@@ -53,14 +54,14 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
     }
 
     constructor(
-        publicAPI: API.PublicAPI,
+        privateAPI: PrivateAPI,
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
         nsp?: string,
     ) {
         super();
 
-        this._publicAPI = publicAPI;
+        this._privateAPI = privateAPI;
         this._redisClient = redisClient;
 
         const socketNamespace = socketServer.of(`/${nsp || ''}`);
@@ -74,6 +75,10 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         socketNamespace.on('error', (error: Error) => {
             debug(error);
         });
+    }
+
+    public dispose() {
+        /* do nothing */
     }
 
     protected _broadcastEvent(event: string, ...args_: any[]): boolean {

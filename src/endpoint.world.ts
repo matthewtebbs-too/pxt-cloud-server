@@ -9,6 +9,8 @@ import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
 import * as API from './api';
+import { PrivateAPI } from './api_';
+
 import { Endpoint } from './endpoint_';
 
 const debug = require('debug')('pxt-cloud:endpoint.world');
@@ -19,10 +21,10 @@ const WorldDBKeys = {
 
 export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     constructor(
-        publicAPI: API.PublicAPI,
+        privateAPI: PrivateAPI,
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
     ) {
-        super(publicAPI, redisClient, socketServer, 'pxt-cloud.world');
+        super(privateAPI, redisClient, socketServer, 'pxt-cloud.world');
     }
 }

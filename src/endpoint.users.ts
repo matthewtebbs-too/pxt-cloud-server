@@ -9,27 +9,29 @@ import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
 import * as API from './api';
-import * as Endpoints from './endpoint_';
+import { PrivateAPI } from './api_';
+
+import { Endpoint } from './endpoint_';
 
 const debug = require('debug')('pxt-cloud:endpoint.users');
 
 // tslint:disable-next-line:variable-name
 const UsersDBKeys = {
-    user: (sockid: string) => `user:${sockid}`,
+    user: (id: string) => `user:${id}`,
 };
 
-export class UsersEndpoint extends Endpoints.Endpoint implements API.UsersAPI {
+export class UsersEndpoint extends Endpoint implements API.UsersAPI {
     constructor(
-        publicAPI: API.PublicAPI,
+        privateAPI: PrivateAPI,
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
     ) {
-        super(publicAPI, redisClient, socketServer, 'pxt-cloud.users');
+        super(privateAPI, redisClient, socketServer, 'pxt-cloud.users');
     }
 
     public selfInfo(socket?: SocketIO.Socket): Promise<API.UserData> {
         return new Promise((resolve, reject) => {
-            const userId = Endpoints.Endpoint.userId(socket);
+            const userId = Endpoint.userId(socket);
             const userkey = UsersDBKeys.user(userId);
 
             this.redisClient.hgetall(
@@ -50,7 +52,7 @@ export class UsersEndpoint extends Endpoints.Endpoint implements API.UsersAPI {
 
     public addSelf(user: API.UserData, socket?: SocketIO.Socket): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            const userId = Endpoints.Endpoint.userId(socket);
+            const userId = Endpoint.userId(socket);
             const userkey = UsersDBKeys.user(userId);
 
             const multi = this.redisClient.multi()
@@ -79,7 +81,7 @@ export class UsersEndpoint extends Endpoints.Endpoint implements API.UsersAPI {
 
     public removeSelf(socket?: SocketIO.Socket): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            const userId = Endpoints.Endpoint.userId(socket);
+            const userId = Endpoint.userId(socket);
             const userkey = UsersDBKeys.user(userId);
 
             this.redisClient.del(
@@ -106,8 +108,8 @@ export class UsersEndpoint extends Endpoints.Endpoint implements API.UsersAPI {
         super._onClientConnect(socket);
 
         socket
-            .on('self info', cb => Endpoints.Endpoint._onPromisedEvent(this.selfInfo(socket), cb))
-            .on('add self', (user, cb) => Endpoints.Endpoint._onPromisedEvent(this.addSelf(user, socket), cb))
-            .on('remove self', cb => Endpoints.Endpoint._onPromisedEvent(this.removeSelf(socket), cb));
+            .on('self info', cb => Endpoint._onPromisedEvent(this.selfInfo(socket), cb))
+            .on('add self', (user, cb) => Endpoint._onPromisedEvent(this.addSelf(user, socket), cb))
+            .on('remove self', cb => Endpoint._onPromisedEvent(this.removeSelf(socket), cb));
     }
 }

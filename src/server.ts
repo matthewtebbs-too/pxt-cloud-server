@@ -16,17 +16,22 @@ import { ServerConfig } from './server.config';
 import { SocketServer } from './socket.server';
 
 import * as API from './api';
-import * as Endpoints from './endpoints';
+import { PrivateAPI } from './api_';
+
+import { ChatEndpoint } from './endpoint.chat';
+import { UsersEndpoint } from './endpoint.users';
+import { WorldEndpoint } from './endpoint.world';
+import { Endpoint } from './endpoint_';
 
 const debug = require('debug')('pxt-cloud:server');
 
 interface EndpointConstructor {
     new (
-        publicAPI: API.PublicAPI,
+        privateAPI: PrivateAPI,
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
         nsp?: string,
-    ): Endpoints.Endpoint;
+    ): Endpoint;
 }
 
 interface HttpServerWithShutdown extends Http.Server {
@@ -53,14 +58,14 @@ class Server {
     }
 
     public get publicAPI() {
-        return this._publicAPI;
+        return this._privateAPI as API.PublicAPI;
     }
 
     protected _httpServer: HttpServerWithShutdown | null = null;
     protected _socketServer: SocketServer | null = null;
     protected _redisClient: RedisClient | null = null;
 
-    protected _publicAPI: API.PublicAPI = { public: null };
+    protected _privateAPI: PrivateAPI = {};
 
     public start(port_: number = ServerConfig.port, host_: string = ServerConfig.host): Promise<this> {
         this.dispose();
@@ -78,11 +83,9 @@ class Server {
 
                 this._redisClient.connect()
                     .then(() => {
-                        this._publicAPI.public = this.publicAPI;
-
-                        this._createAPI('users', Endpoints.UsersEndpoint);
-                        this._createAPI('chat', Endpoints.ChatEndpoint);
-                        this._createAPI('world', Endpoints.WorldEndpoint);
+                        this._createAPI('users', UsersEndpoint);
+                        this._createAPI('chat', ChatEndpoint);
+                        this._createAPI('world', WorldEndpoint);
 
                         resolve(this);
                     })
@@ -125,14 +128,21 @@ class Server {
             return false;
         }
 
-        this._publicAPI[name] = new ctor(this.publicAPI, redisClient, socketServer);
+        const endpoint = new ctor(this._privateAPI, redisClient, socketServer);
+
+        this._privateAPI[name] = endpoint;
 
         return true;
     }
 
     protected _disposeAPI<T extends keyof API.PublicAPI>(name: T) {
-        if (name in this._publicAPI) {
-            delete this._publicAPI[name];
+        if (name in this._privateAPI) {
+            const endpoint = this._privateAPI[name];
+
+            if (endpoint) {
+                endpoint.dispose();
+                this._privateAPI[name] = null;
+            }
         }
     }
 }

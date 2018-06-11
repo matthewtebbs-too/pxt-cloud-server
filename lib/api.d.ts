@@ -20,7 +20,6 @@ export interface ChatAPI extends EventAPI {
 export interface WorldAPI extends EventAPI {
 }
 export interface PublicAPI {
-    public: PublicAPI | null;
     chat?: ChatAPI;
     users?: UsersAPI;
     world?: WorldAPI;

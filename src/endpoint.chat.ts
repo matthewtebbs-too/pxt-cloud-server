@@ -9,7 +9,10 @@ import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
 import * as API from './api';
-import * as Endpoints from './endpoint_';
+import { PrivateAPI } from './api_';
+
+import { UsersEndpoint } from './endpoint.users';
+import { Endpoint } from './endpoint_';
 
 const debug = require('debug')('pxt-cloud:endpoint.chat');
 
@@ -17,26 +20,29 @@ const debug = require('debug')('pxt-cloud:endpoint.chat');
 const ChatDBKeys = {
 };
 
-export class ChatEndpoint extends Endpoints.Endpoint implements API.ChatAPI {
+export class ChatEndpoint extends Endpoint implements API.ChatAPI {
     constructor(
-        publicAPI: API.PublicAPI,
+        privateAPI: PrivateAPI,
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
     ) {
-        super(publicAPI, redisClient, socketServer, 'pxt-cloud.chat');
+        super(privateAPI, redisClient, socketServer, 'pxt-cloud.chat');
     }
 
     public newMessage(msg: string | API.MessageData, socket?: SocketIO.Socket): Promise<void> {
-        return this.publicAPI.users!
-            .selfInfo()
+        return (this.privateAPI.users! as any as UsersEndpoint)
+            .selfInfo(socket)
             .then(user => {
-                this._broadcastEvent('new message', typeof msg === 'object' ? { ...msg, name: user.name } : { name: user.name, text: msg }, socket);
+                this._broadcastEvent(
+                    'new message',
+                    typeof msg === 'object' ? { ...msg, name: user.name } : { name: user.name, text: msg },
+                    socket);
             });
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on('new message', (msg, cb) => Endpoints.Endpoint._onPromisedEvent(this.newMessage(msg, socket), cb));
+        socket.on('new message', (msg, cb) => Endpoint._onPromisedEvent(this.newMessage(msg, socket), cb));
     }
 }
