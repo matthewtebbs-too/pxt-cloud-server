@@ -9,7 +9,7 @@ import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
 import * as API from './api';
-import { PrivateAPI } from './api_';
+import * as API_ from './api_';
 
 import { UsersEndpoint } from './endpoint.users';
 import { Endpoint } from './endpoint_';
@@ -22,11 +22,11 @@ const ChatDBKeys = {
 
 export class ChatEndpoint extends Endpoint implements API.ChatAPI {
     constructor(
-        privateAPI: PrivateAPI,
+        privateAPI: API_.PrivateAPI,
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
     ) {
-        super(privateAPI, redisClient, socketServer, API.namespaceChatAPI);
+        super(privateAPI, redisClient, socketServer, 'chat');
     }
 
     public newMessage(msg: string | API.MessageData, socket?: SocketIO.Socket): Promise<void> {

@@ -64,7 +64,7 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         this._privateAPI = privateAPI;
         this._redisClient = redisClient;
 
-        const socketNamespace = socketServer.of(`/${nsp || ''}`);
+        const socketNamespace = socketServer.of(`pxt-cloud${nsp ? `/${nsp}` : ''}`);
 
         socketNamespace.on('connect', (socket: SocketIO.Socket) => {
             debug(`${socket.id} client connected from ${socket.handshake.address}`);

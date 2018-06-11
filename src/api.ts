@@ -11,10 +11,6 @@ export interface EventAPI {
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 }
 
-export function namespaceEventAPI(nsp: string) {
-    return `pxt-cloud/${nsp}`;
-}
-
 export type UserId = string;
 
 export interface UserData {
@@ -38,8 +34,6 @@ export interface UsersAPI extends EventAPI {
     removeSelf(): Promise<boolean>;
 }
 
-export const namespaceUsersAPI = namespaceEventAPI('users');
-
 export interface MessageData {
     readonly text: string;
 
@@ -56,17 +50,13 @@ export interface ChatAPI extends EventAPI {
     newMessage(msg: string | MessageData): Promise<void>;
 }
 
-export const namespaceChatAPI = namespaceEventAPI('chat');
-
 export interface WorldAPI extends EventAPI {
 }
 
-export const namespaceWorldAPI = namespaceEventAPI('world');
-
 export interface PublicAPI {
-    readonly chat?: ChatAPI;
-    readonly users?: UsersAPI;
-    readonly world?: WorldAPI;
+    readonly chat?: ChatAPI;    /* namespace is 'pxt-cloud/chat' */
+    readonly users?: UsersAPI;  /* namespace is 'pxt-cloud/users' */
+    readonly world?: WorldAPI;  /* namespace is 'pxt-cloud/world' */
 }
 
 export declare function startServer(port?: number, host?: string): Promise<PublicAPI>;

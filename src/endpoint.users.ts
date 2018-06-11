@@ -9,7 +9,7 @@ import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
 import * as API from './api';
-import { PrivateAPI } from './api_';
+import * as API_ from './api_';
 
 import { Endpoint } from './endpoint_';
 
@@ -22,11 +22,11 @@ const UsersDBKeys = {
 
 export class UsersEndpoint extends Endpoint implements API.UsersAPI {
     constructor(
-        privateAPI: PrivateAPI,
+        privateAPI: API_.PrivateAPI,
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
     ) {
-        super(privateAPI, redisClient, socketServer, API.namespaceUsersAPI);
+        super(privateAPI, redisClient, socketServer, 'users');
     }
 
     public selfInfo(socket?: SocketIO.Socket): Promise<API.UserData> {

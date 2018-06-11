@@ -16,7 +16,7 @@ import { ServerConfig } from './server.config';
 import { SocketServer } from './socket.server';
 
 import * as API from './api';
-import { PrivateAPI } from './api_';
+import * as API_ from './api_';
 
 import { ChatEndpoint } from './endpoint.chat';
 import { UsersEndpoint } from './endpoint.users';
@@ -27,7 +27,7 @@ const debug = require('debug')('pxt-cloud:server');
 
 interface EndpointConstructor {
     new (
-        privateAPI: PrivateAPI,
+        privateAPI: API_.PrivateAPI,
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
         nsp?: string,
@@ -65,7 +65,7 @@ class Server {
     protected _socketServer: SocketServer | null = null;
     protected _redisClient: RedisClient | null = null;
 
-    protected _privateAPI: PrivateAPI = {};
+    protected _privateAPI: API_.PrivateAPI = {};
 
     public start(port_: number = ServerConfig.port, host_: string = ServerConfig.host): Promise<this> {
         this.dispose();
@@ -81,13 +81,10 @@ class Server {
                 this._socketServer = new SocketServer(this._httpServer);
                 this._redisClient = new RedisClient();
 
-                this._createAPI('users', UsersEndpoint);
-                this._createAPI('chat', ChatEndpoint);
-                this._createAPI('world', WorldEndpoint);
-
-                this._redisClient.connect()
-                    .then(() => resolve(this))
-                    .catch(err => reject(err));
+                this._redisClient
+                    .connect(() => this._createAllAPI() /* intiialized */)
+                    .then(() => resolve(this))          /* connect success */
+                    .catch(err => reject(err));         /* connect faiure */
             });
 
             this._httpServer.on('error', err => {
@@ -116,6 +113,12 @@ class Server {
             this._httpServer.close();
             this._httpServer = null;
         }
+    }
+
+    protected _createAllAPI() {
+        this._createAPI('users', UsersEndpoint);
+        this._createAPI('chat', ChatEndpoint);
+        this._createAPI('world', WorldEndpoint);
     }
 
     protected _createAPI<T extends keyof API.PublicAPI>(name: T, ctor: EndpointConstructor): boolean {
