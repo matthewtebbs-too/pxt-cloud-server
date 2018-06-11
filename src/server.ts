@@ -87,9 +87,9 @@ class Server {
                     .catch(err => reject(err));         /* connect faiure */
             });
 
-            this._httpServer.on('error', err => {
-                debug(err);
-                reject(err);
+            this._httpServer.on('error', error => {
+                debug(`${error.message}\n`);
+                reject(error);
             });
          });
     }
