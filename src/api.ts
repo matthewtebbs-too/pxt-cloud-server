@@ -12,7 +12,7 @@ export interface EventAPI {
 }
 
 export function namespaceEventAPI(nsp: string) {
-    return `pxt-cloud:${nsp}`;
+    return `pxt-cloud/${nsp}`;
 }
 
 export type UserId = string;
