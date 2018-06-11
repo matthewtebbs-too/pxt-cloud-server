@@ -27,11 +27,11 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         super(publicAPI, redisClient, socketServer, 'pxt-cloud.users');
     }
 
-    public selfInfo(cb?: API.AckCallback<API.UserData>, socket?: SocketIO.Socket): boolean {
+    public selfInfo(cb?: API.AckCallback<API.UserData>, socket?: SocketIO.Socket): void {
         const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
 
-        return this.redisClient.hgetall(userkey, API.mappedAckHandler(reply => {
+        this.redisClient.hgetall(userkey, API.mappedAckHandler(reply => {
             return { /* sanitize data */
                 name: reply && reply.name ? reply.name : '',
             };
@@ -42,7 +42,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         return API.promisefy(this, this.selfInfo, socket);
     }
 
-    public addSelf(user: API.UserData, cb?: API.AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
+    public addSelf(user: API.UserData, cb?: API.AckCallback<boolean>, socket?: SocketIO.Socket): void {
         const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
 
@@ -52,7 +52,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
                 name: user.name || '',
             });
 
-        return multi.exec(API.mappedAckHandler(reply => {
+        multi.exec(API.mappedAckHandler(reply => {
             const existed = !!reply && reply[0] as boolean; /* reply from exists */
 
             if (!existed) {
@@ -67,11 +67,11 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         return API.promisefy(this, this.addSelf, user, socket);
     }
 
-    public removeSelf(cb?: API.AckCallback<boolean>, socket?: SocketIO.Socket): boolean {
+    public removeSelf(cb?: API.AckCallback<boolean>, socket?: SocketIO.Socket): void {
         const userId = Endpoint.userId(socket);
         const userkey = UsersDBKeys.user(userId);
 
-        return this.redisClient.del(userkey, API.mappedAckHandler(reply => {
+        this.redisClient.del(userkey, API.mappedAckHandler(reply => {
             const existed = !!reply; /* reply from del */
 
             if (existed) {

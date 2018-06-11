@@ -9,7 +9,7 @@ const debug = require('debug')('pxt-cloud:api');
 
 export interface Ack<T> {
     readonly error: Error | null;
-    readonly reply: T;
+    readonly reply?: T;
 }
 
 export type AckCallback<T> = (ack: Ack<T>) => void;
@@ -35,9 +35,9 @@ export type UserData = {
 */
 
 export interface UsersAPI extends EventAPI {
-    selfInfo(cb?: AckCallback<UserData>): boolean;
-    addSelf(user: UserData, cb?: AckCallback<boolean>): boolean;
-    removeSelf(cb?: AckCallback<boolean>): boolean;
+    selfInfo(cb?: AckCallback<UserData>): void;
+    addSelf(user: UserData, cb?: AckCallback<boolean>): void;
+    removeSelf(cb?: AckCallback<boolean>): void;
 
     selfInfoAsync(): Promise<UserData>;
     addSelfAsync(user: UserData): Promise<boolean>;
@@ -56,7 +56,7 @@ export type MessageData = {
 */
 
 export interface ChatAPI extends EventAPI {
-    newMessage(msg: string | MessageData, cb?: AckCallback<void>): boolean;
+    newMessage(msg: string | MessageData, cb?: AckCallback<void>): void;
 
     newMessageAsync(msg: string | MessageData): Promise<void>;
 }
@@ -73,7 +73,7 @@ export interface PublicAPI {
 }
 
 export function ackHandler<T = void>(cb?: AckCallback<T>) {
-    return (error: Error | null, reply: T) => {
+    return (error: Error | null, reply?: T) => {
         if (cb) {
             cb({ error, reply });
         }
@@ -104,7 +104,7 @@ export function extractSocketFromArgs(args: any[]): [any[], any ] {
     return [ args, socket ];
 }
 
-export function promisefy<T>(thisArg: any, fn: (...args: any[]) => boolean, ...args_: any[]): Promise<T> {
+export function promisefy<T>(thisArg: any, fn: (...args: any[]) => void, ...args_: any[]): Promise<T> {
     return new Promise((resolve, reject) => {
         const [ args, socket ] = extractSocketFromArgs(args_);
 

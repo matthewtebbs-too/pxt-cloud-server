@@ -26,15 +26,10 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
         super(publicAPI, redisClient, socketServer, 'pxt-cloud.chat');
     }
 
-    public newMessage(msg: string | API.MessageData, cb?: API.AckCallback<void>, socket?: SocketIO.Socket): boolean {
-        const user = this.publicAPI.users!.selfInfo();
-        const result = this._broadcastEvent('new message', typeof msg === 'object' ? msg : { text: msg }, socket);
-
-        if (result) {
-            API.ackHandler(cb);
-        }
-
-        return result;
+    public newMessage(msg: string | API.MessageData, cb?: API.AckCallback<void>, socket?: SocketIO.Socket): void {
+        this.publicAPI.users!.selfInfoAsync()
+            .then(user => this._broadcastEvent('new message', typeof msg === 'object' ? msg : { name: user.name, text: msg }, cb, socket))
+            .catch(API.ackHandler(cb));
     }
 
     public newMessageAsync(msg: string | API.MessageData, socket?: SocketIO.Socket): Promise<void> {
@@ -44,6 +39,6 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on('new message', (msg: API.MessageData, cb?: API.AckCallback<void>) => this.newMessage(msg, cb, socket));
+        socket.on('new message', (msg, cb) => this.newMessage(msg, cb, socket));
     }
 }
