@@ -26,7 +26,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
     ) {
-        super(privateAPI, redisClient, socketServer, 'pxt-cloud.users');
+        super(privateAPI, redisClient, socketServer, API.namespaceUsersAPI);
     }
 
     public selfInfo(socket?: SocketIO.Socket): Promise<API.UserData> {
@@ -73,7 +73,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
                     const existed = !!reply && reply[0] as boolean; /* reply from exists */
 
                     if (!existed) {
-                        this._broadcastEvent('user joined', userId, user, socket);
+                        this._broadcastNotifyEvent('user joined', userId, user, socket);
                     }
 
                     resolve(existed);
@@ -98,7 +98,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
                     const existed = !!reply; /* reply from del */
 
                     if (existed) {
-                        this._broadcastEvent('user left', userId, socket);
+                        this._broadcastNotifyEvent('user left', userId, socket);
                     }
 
                     resolve(existed);
@@ -110,8 +110,8 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         super._onClientConnect(socket);
 
         socket
-            .on('self info', cb => Endpoint._onPromisedEvent(this.selfInfo(socket), cb))
-            .on('add self', (user, cb) => Endpoint._onPromisedEvent(this.addSelf(user, socket), cb))
-            .on('remove self', cb => Endpoint._onPromisedEvent(this.removeSelf(socket), cb));
+            .on('self info', cb => Endpoint._fulfillReceivedEvent(this.selfInfo(socket), cb))
+            .on('add self', (user, cb) => Endpoint._fulfillReceivedEvent(this.addSelf(user, socket), cb))
+            .on('remove self', cb => Endpoint._fulfillReceivedEvent(this.removeSelf(socket), cb));
     }
 }

@@ -9,14 +9,15 @@ export declare class Endpoint extends EventEmitter implements API.EventAPI {
     static userId: typeof Endpoint.connectId;
     static connectId(socket?: SocketIO.Socket): string;
     protected static _extractSocketFromArgs(args: any[]): [any[], any];
-    protected static _onPromisedEvent<T>(promise: Promise<T>, cb: Callback<T>): void;
+    protected static _fulfillReceivedEvent<T>(promise: Promise<T>, cb: Callback<T>): void;
     private _privateAPI;
     private _redisClient;
     protected readonly privateAPI: PrivateAPI;
     protected readonly redisClient: Redis.RedisClient;
     constructor(privateAPI: PrivateAPI, redisClient: Redis.RedisClient, socketServer: SocketIO.Server, nsp?: string);
     dispose(): void;
-    protected _broadcastEvent(event: string, ...args_: any[]): boolean;
+    protected _notifyEvent(event: string, ...args: any[]): boolean;
+    protected _broadcastNotifyEvent(event: string, ...args_: any[]): boolean;
     protected _onClientConnect(socket: SocketIO.Socket): void;
     protected _onClientDisconnect(socket: SocketIO.Socket): void;
 }

@@ -11,6 +11,10 @@ export interface EventAPI {
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 }
 
+export function namespaceEventAPI(nsp: string) {
+    return `pxt-cloud:${nsp}`;
+}
+
 export type UserId = string;
 
 export interface UserData {
@@ -34,6 +38,8 @@ export interface UsersAPI extends EventAPI {
     removeSelf(): Promise<boolean>;
 }
 
+export const namespaceUsersAPI = namespaceEventAPI('users');
+
 export interface MessageData {
     readonly text: string;
 
@@ -50,8 +56,12 @@ export interface ChatAPI extends EventAPI {
     newMessage(msg: string | MessageData): Promise<void>;
 }
 
+export const namespaceChatAPI = namespaceEventAPI('chat');
+
 export interface WorldAPI extends EventAPI {
 }
+
+export const namespaceWorldAPI = namespaceEventAPI('world');
 
 export interface PublicAPI {
     readonly chat?: ChatAPI;

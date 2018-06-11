@@ -26,7 +26,7 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
     ) {
-        super(privateAPI, redisClient, socketServer, 'pxt-cloud.chat');
+        super(privateAPI, redisClient, socketServer, API.namespaceChatAPI);
     }
 
     public newMessage(msg: string | API.MessageData, socket?: SocketIO.Socket): Promise<void> {
@@ -37,16 +37,13 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
                     msg = { text: msg };
                 }
 
-                this._broadcastEvent(
-                    'new message',
-                    { ...msg, name: user.name },
-                    socket);
+                this._broadcastNotifyEvent('new message', { ...msg, name: user.name }, socket);
             });
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on('new message', (msg, cb) => Endpoint._onPromisedEvent(this.newMessage(msg, socket), cb));
+        socket.on('new message', (msg, cb) => Endpoint._fulfillReceivedEvent(this.newMessage(msg, socket), cb));
     }
 }

@@ -25,6 +25,6 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
     ) {
-        super(privateAPI, redisClient, socketServer, 'pxt-cloud.world');
+        super(privateAPI, redisClient, socketServer, API.namespaceWorldAPI);
     }
 }

@@ -38,7 +38,7 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         return [ args, socket ];
     }
 
-    protected static _onPromisedEvent<T>(promise: Promise<T>, cb: Callback<T>) {
+    protected static _fulfillReceivedEvent<T>(promise: Promise<T>, cb: Callback<T>) {
         promise.then(value => cb(null, value), cb);
     }
 
@@ -81,7 +81,11 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         /* do nothing */
     }
 
-    protected _broadcastEvent(event: string, ...args_: any[]): boolean {
+    protected _notifyEvent(event: string, ...args: any[]): boolean {
+        return this.emit(event, args);
+    }
+
+    protected _broadcastNotifyEvent(event: string, ...args_: any[]): boolean {
         const [ args, socket ] = Endpoint._extractSocketFromArgs(args_);
 
         if (socket) {
@@ -90,7 +94,7 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
             }
         }
 
-        return this.emit(event, args);
+        return this._notifyEvent(event, args);
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
