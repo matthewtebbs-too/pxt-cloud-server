@@ -9,7 +9,7 @@ import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
 import * as API from './api';
-import { Endpoint } from './endpoint_';
+import * as Endpoints from './endpoint_';
 
 const debug = require('debug')('pxt-cloud:endpoint.chat');
 
@@ -17,7 +17,7 @@ const debug = require('debug')('pxt-cloud:endpoint.chat');
 const ChatDBKeys = {
 };
 
-export class ChatEndpoint extends Endpoint implements API.ChatAPI {
+export class ChatEndpoint extends Endpoints.Endpoint implements API.ChatAPI {
     constructor(
         publicAPI: API.PublicAPI,
         redisClient: Redis.RedisClient,
@@ -30,13 +30,13 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
         return this.publicAPI.users!
             .selfInfo()
             .then(user => {
-                this._broadcastEvent('new message', typeof msg === 'object' ? msg : { name: user.name, text: msg }, socket);
+                this._broadcastEvent('new message', typeof msg === 'object' ? { ...msg, name: user.name } : { name: user.name, text: msg }, socket);
             });
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on('new message', (msg, cb) => this.newMessage(msg, socket));
+        socket.on('new message', (msg, cb) => Endpoints.Endpoint._onPromisedEvent(this.newMessage(msg, socket), cb));
     }
 }

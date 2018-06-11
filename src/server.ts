@@ -8,6 +8,8 @@ import * as FS from 'fs';
 import * as Http from 'http';
 require('http-shutdown').extend();
 import * as Path from 'path';
+import * as Redis from 'redis';
+import * as SocketIO from 'socket.io';
 
 import { RedisClient } from './client.redis';
 import { ServerConfig } from './server.config';
@@ -17,6 +19,15 @@ import * as API from './api';
 import * as Endpoints from './endpoints';
 
 const debug = require('debug')('pxt-cloud:server');
+
+interface EndpointConstructor {
+    new (
+        publicAPI: API.PublicAPI,
+        redisClient: Redis.RedisClient,
+        socketServer: SocketIO.Server,
+        nsp?: string,
+    ): Endpoints.Endpoint;
+}
 
 interface HttpServerWithShutdown extends Http.Server {
     withShutdown(): this;
@@ -106,7 +117,7 @@ class Server {
         }
     }
 
-    protected _createAPI<T extends keyof API.PublicAPI>(name: T, ctor: Endpoints.IEndpointConstructor): boolean {
+    protected _createAPI<T extends keyof API.PublicAPI>(name: T, ctor: EndpointConstructor): boolean {
         const redisClient = this._redisClient ? this._redisClient.client : null;
         const socketServer = this._socketServer ? this._socketServer.server : null;
 

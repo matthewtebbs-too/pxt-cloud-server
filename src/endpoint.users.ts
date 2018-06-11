@@ -9,7 +9,7 @@ import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
 import * as API from './api';
-import { Endpoint } from './endpoint_';
+import * as Endpoints from './endpoint_';
 
 const debug = require('debug')('pxt-cloud:endpoint.users');
 
@@ -18,7 +18,7 @@ const UsersDBKeys = {
     user: (sockid: string) => `user:${sockid}`,
 };
 
-export class UsersEndpoint extends Endpoint implements API.UsersAPI {
+export class UsersEndpoint extends Endpoints.Endpoint implements API.UsersAPI {
     constructor(
         publicAPI: API.PublicAPI,
         redisClient: Redis.RedisClient,
@@ -29,7 +29,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
 
     public selfInfo(socket?: SocketIO.Socket): Promise<API.UserData> {
         return new Promise((resolve, reject) => {
-            const userId = Endpoint.userId(socket);
+            const userId = Endpoints.Endpoint.userId(socket);
             const userkey = UsersDBKeys.user(userId);
 
             this.redisClient.hgetall(
@@ -50,7 +50,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
 
     public addSelf(user: API.UserData, socket?: SocketIO.Socket): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            const userId = Endpoint.userId(socket);
+            const userId = Endpoints.Endpoint.userId(socket);
             const userkey = UsersDBKeys.user(userId);
 
             const multi = this.redisClient.multi()
@@ -79,7 +79,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
 
     public removeSelf(socket?: SocketIO.Socket): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            const userId = Endpoint.userId(socket);
+            const userId = Endpoints.Endpoint.userId(socket);
             const userkey = UsersDBKeys.user(userId);
 
             this.redisClient.del(
@@ -105,8 +105,9 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on('self info', (cb) => this.selfInfo(socket));
-        socket.on('add self', (user, cb) => this.addSelf(user, socket));
-        socket.on('remove self', (cb) => this.removeSelf(socket));
+        socket
+            .on('self info', cb => Endpoints.Endpoint._onPromisedEvent(this.selfInfo(socket), cb))
+            .on('add self', (user, cb) => Endpoints.Endpoint._onPromisedEvent(this.addSelf(user, socket), cb))
+            .on('remove self', cb => Endpoints.Endpoint._onPromisedEvent(this.removeSelf(socket), cb));
     }
 }

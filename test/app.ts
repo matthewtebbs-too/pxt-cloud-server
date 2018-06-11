@@ -8,10 +8,8 @@ import * as PxtCloud from '..';
 
 const debug = require('debug')('pxt-cloud:test');
 
-function test(api: PxtCloud.PublicAPI) {
-    api.users!.addSelf({ name: 'Billy Bob' }).then(value => debug(`user existed: %d`, value), debug);
-    api.users!.selfInfo().then(value => debug(`user: %o`, value), debug);
-    api.chat!.newMessage('hello world!').then(debug(`message sent`), debug);
+function run(api: PxtCloud.PublicAPI) {
+    /* do nothing */
 }
 
-PxtCloud.startServer().then(test, debug);
+PxtCloud.startServer().then(run, debug);

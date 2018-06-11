@@ -12,14 +12,7 @@ import * as API from './api';
 
 const debug = require('debug')('pxt-cloud:endpoint');
 
-export interface IEndpointConstructor {
-    new (
-        publicAPI: API.PublicAPI,
-        redisClient: Redis.RedisClient,
-        socketServer: SocketIO.Server,
-        nsp?: string,
-    ): Endpoint;
-}
+export type Callback<T> = (error: Error | null, reply?: T) => void;
 
 export class Endpoint extends EventEmitter implements API.EventAPI {
     public static userId = Endpoint.connectId;
@@ -28,7 +21,7 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         return socket ? socket.id : 'localhost';
     }
 
-    protected static _extractSocketFromArgs(args: any[]): [any[], any ] {
+    protected static _extractSocketFromArgs(args: any[]): [ any[], any ] {
         let socket;
 
         if (args.length > 0) {
@@ -42,6 +35,10 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         }
 
         return [ args, socket ];
+    }
+
+    protected static _onPromisedEvent<T>(promise: Promise<T>, cb: Callback<T>) {
+        promise.then(value => cb(null, value), cb);
     }
 
     private _publicAPI: API.PublicAPI;
@@ -88,11 +85,7 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
             }
         }
 
-        if (!this.emit(event, args)) {
-            return false;
-        }
-
-        return true;
+        return this.emit(event, args);
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
