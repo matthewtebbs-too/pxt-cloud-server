@@ -18,6 +18,7 @@ export class RedisClient extends EventEmitter {
         const maxTotalRetryTimeSec = 60 * 15;  /* 15 minutes */
         const maxRetryTimeSec = 60 * 2;        /* 2 minutes */
         const maxTotalAttempts = 20;           /* 20 attempts */
+        const randomizationJitter = 0.5;       /* jitter retry delay, zero is none */
 
         let error = null;
 
@@ -32,8 +33,8 @@ export class RedisClient extends EventEmitter {
             return error;
         }
 
-        const nextRetryIn = options.total_retry_time + options.attempt * 100;
-        return Math.min(nextRetryIn, 1000 * maxRetryTimeSec);
+        const retryDelay = Math.min(options.total_retry_time + options.attempt * 100, 1000 * maxRetryTimeSec);
+        return Math.round(retryDelay * (randomizationJitter * Math.random() + (1 - randomizationJitter)));
     }
 
     public get client(): Redis.RedisClient |  null {
