@@ -15,22 +15,25 @@ const debug = require('debug')('pxt-cloud:redis');
 export class RedisClient extends EventEmitter {
     /* Reference: https://github.com/NodeRedis/node_redis */
     private static _retrystrategy(options: Redis.RetryStrategyOptions): number | Error {
+        const maxTotalRetryTimeSec = 60 * 15;  /* 15 minutes */
+        const maxRetryTimeSec = 60 * 2;        /* 2 minutes */
+        const maxTotalAttempts = 20;           /* 20 attempts */
+
         let error = null;
 
-        if (options.error && options.error.code === 'ECONNREFUSED') {
-            error = options.error;
-        } else if (options.total_retry_time > 1000 * 60 * 60) {
-            error = Error('retry time exhausted');
-        } else if (options.attempt > 10) {
+        if (options.total_retry_time > 1000 * maxTotalRetryTimeSec) {
+            error = new Error('retry time exhausted');
+        } else if (options.attempt > maxTotalAttempts) {
             error = new Error('max retry attempts reached');
         }
 
         if (error) {
-            debug(error);
+            debug(error.message);
             return error;
         }
 
-        return Math.min(options.attempt * 100, 3000);
+        const nextRetryIn = options.total_retry_time + options.attempt * 100;
+        return Math.min(nextRetryIn, 1000 * maxRetryTimeSec);
     }
 
     public get client(): Redis.RedisClient |  null {
@@ -45,16 +48,26 @@ export class RedisClient extends EventEmitter {
         return new Promise((resolve, reject) => {
             this._redis = new Redis.RedisClient({ host: host_, port: port_, retry_strategy: RedisClient._retrystrategy });
 
-            this._redis.on('ready', () => {
-                this._redis!.on('end', () => debug(`connection ended`));
+            this._redis.on('connect', () => {
+                debug(`connected`);
+                this._redis!.on('end', () => debug(`disconnected`));
+            });
 
-                debug(`connection ready`);
+            this._redis.on('ready', () => {
+                debug(`ready`);
                 resolve(this);
             });
 
-            this._redis.on('error', err => {
-                debug(err);
-                reject(err);
+            this._redis.on('reconnecting', (stats) => {
+                debug(`reconnecting with attempt ${stats.attempt} after ${stats.delay} msec`);
+                if (stats.error) {
+                    debug(`[${stats.error.message}]\n`);
+                }
+            });
+
+            this._redis.on('error', error => {
+                debug(error.message);
+                reject(error);
             });
         });
     }

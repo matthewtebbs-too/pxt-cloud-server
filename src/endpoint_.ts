@@ -73,7 +73,7 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         });
 
         socketNamespace.on('error', (error: Error) => {
-            debug(error);
+            debug(`${error.message}\n`);
         });
     }
 
