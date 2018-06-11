@@ -33,9 +33,13 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
         return (this.privateAPI.users! as any as UsersEndpoint)
             .selfInfo(socket)
             .then(user => {
+                if (typeof msg !== 'object') {
+                    msg = { text: msg };
+                }
+
                 this._broadcastEvent(
                     'new message',
-                    typeof msg === 'object' ? { ...msg, name: user.name } : { name: user.name, text: msg },
+                    { ...msg, name: user.name },
                     socket);
             });
     }

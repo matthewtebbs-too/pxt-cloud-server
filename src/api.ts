@@ -13,10 +13,11 @@ export interface EventAPI {
 
 export type UserId = string;
 
-// tslint:disable-next-line:interface-over-type-literal
-export type UserData = {
-    name: string;
-};
+export interface UserData {
+    readonly name: string;
+
+    readonly id?: UserId;   /* reply only */
+}
 
 /*
     Events:-
@@ -33,11 +34,11 @@ export interface UsersAPI extends EventAPI {
     removeSelf(): Promise<boolean>;
 }
 
-// tslint:disable-next-line:interface-over-type-literal
-export type MessageData = {
-    name: string;
-    text: string;
-};
+export interface MessageData {
+    readonly text: string;
+
+    readonly name?: string; /* reply only */
+}
 
 /*
     Events:-
@@ -53,9 +54,9 @@ export interface WorldAPI extends EventAPI {
 }
 
 export interface PublicAPI {
-    chat?: ChatAPI;
-    users?: UsersAPI;
-    world?: WorldAPI;
+    readonly chat?: ChatAPI;
+    readonly users?: UsersAPI;
+    readonly world?: WorldAPI;
 }
 
 export declare function startServer(port?: number, host?: string): Promise<PublicAPI>;

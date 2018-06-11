@@ -45,6 +45,8 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
 
                     resolve({ /* sanitize data */
                         name: reply && reply.name ? reply.name : '',
+
+                        id: userId,
                     });
                 });
         });
