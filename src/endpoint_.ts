@@ -9,7 +9,6 @@ import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
 import * as API from './api';
-import { PrivateAPI } from './api_';
 
 export type Callback<T> = (error: Error | null, reply?: T) => void;
 
@@ -42,11 +41,11 @@ export abstract class Endpoint extends EventEmitter implements API.EventAPI {
 
     protected abstract _debug: any;
 
-    private _privateAPI: PrivateAPI;
+    private _endpoints: Endpoints;
     private _redisClient: Redis.RedisClient;
 
-    protected get privateAPI() {
-        return this._privateAPI;
+    protected get endpoints() {
+        return this._endpoints;
     }
 
     protected get redisClient() {
@@ -54,14 +53,14 @@ export abstract class Endpoint extends EventEmitter implements API.EventAPI {
     }
 
     constructor(
-        privateAPI: PrivateAPI,
+        endpoints: Endpoints,
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
         nsp?: string,
     ) {
         super();
 
-        this._privateAPI = privateAPI;
+        this._endpoints = endpoints;
         this._redisClient = redisClient;
 
         const socketNamespace = socketServer.of(`pxt-cloud${nsp ? `/${nsp}` : ''}`);
@@ -109,3 +108,5 @@ export abstract class Endpoint extends EventEmitter implements API.EventAPI {
         /* do nothing */
     }
 }
+
+export type Endpoints = { [E in keyof API.PublicAPI]: Endpoint & API.PublicAPI[E] | null };

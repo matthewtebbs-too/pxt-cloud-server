@@ -16,18 +16,17 @@ import { ServerConfig } from './server.config';
 import { SocketServer } from './socket.server';
 
 import * as API from './api';
-import * as API_ from './api_';
 
 import { ChatEndpoint } from './endpoint.chat';
 import { UsersEndpoint } from './endpoint.users';
 import { WorldEndpoint } from './endpoint.world';
-import { Endpoint } from './endpoint_';
+import { Endpoint, Endpoints } from './endpoint_';
 
 const debug = require('debug')('pxt-cloud:server');
 
 interface EndpointConstructor {
     new (
-        privateAPI: API_.PrivateAPI,
+        endpoints: Endpoints,
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
         nsp?: string,
@@ -58,14 +57,18 @@ class Server {
     }
 
     public get publicAPI() {
-        return this._privateAPI as API.PublicAPI;
+        return this._endpoints as API.PublicAPI;
     }
 
     protected _httpServer: HttpServerWithShutdown | null = null;
     protected _socketServer: SocketServer | null = null;
     protected _redisClient: RedisClient | null = null;
 
-    protected _privateAPI: API_.PrivateAPI = {};
+    protected _endpoints: Endpoints = {
+        chat: null,
+        users: null,
+        world: null,
+    };
 
     public start(port_: number = ServerConfig.port, host_: string = ServerConfig.host): Promise<this> {
         this.dispose();
@@ -80,9 +83,9 @@ class Server {
                 this._redisClient = new RedisClient();
 
                 const onInitializedRedis = () => {
-                    this._createAPI('users', UsersEndpoint);
-                    this._createAPI('chat', ChatEndpoint);
-                    this._createAPI('world', WorldEndpoint);
+                    this._createEndpoint('chat', ChatEndpoint);
+                    this._createEndpoint('users', UsersEndpoint);
+                    this._createEndpoint('world', WorldEndpoint);
                 };
 
                 this._redisClient
@@ -99,7 +102,7 @@ class Server {
     }
 
     public dispose() {
-        (Object.keys(this._privateAPI) as Array<keyof API.PublicAPI>).forEach(name => this._disposeAPI(name));
+        (Object.keys(this._endpoints) as Array<keyof API.PublicAPI>).forEach(name => this._disposeEndpoint(name));
 
         if (this._socketServer) {
             this._socketServer.dispose();
@@ -117,7 +120,7 @@ class Server {
         }
     }
 
-    protected _createAPI<T extends keyof API.PublicAPI>(name: T, ctor: EndpointConstructor): boolean {
+    protected _createEndpoint<T extends keyof API.PublicAPI>(name: T, ctor: EndpointConstructor): boolean {
         const redisClient = this._redisClient ? this._redisClient.client : null;
         const socketServer = this._socketServer ? this._socketServer.server : null;
 
@@ -125,26 +128,26 @@ class Server {
             return false;
         }
 
-        this._privateAPI[name] = new ctor(this._privateAPI, redisClient, socketServer);
+        this._endpoints[name] = new ctor(this._endpoints, redisClient, socketServer);
         debug(`created '${name}' API endpoint`);
 
         return true;
     }
 
-    protected _disposeAPI<T extends keyof API.PublicAPI>(name: T) {
-        if (name in this._privateAPI) {
-            const endpoint = this._privateAPI[name];
+    protected _disposeEndpoint<T extends keyof API.PublicAPI>(name: T) {
+        if (name in this._endpoints) {
+            const endpoint = this._endpoints[name];
 
             if (endpoint) {
                 endpoint.dispose();
-                this._privateAPI[name] = null;
+                this._endpoints[name] = null;
             }
         }
     }
 }
 
 export function startServer(port?: number, host?: string): Promise<API.PublicAPI> {
-    return Server.singleton.start(port, host).then(server => ({ ...server.publicAPI, dispose: disposeServer }));
+    return Server.singleton.start(port, host).then(server => ({ ...server.publicAPI }));
 }
 
 export function disposeServer() {

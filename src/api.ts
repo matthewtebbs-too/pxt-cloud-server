@@ -54,11 +54,9 @@ export interface WorldAPI extends EventAPI {
 }
 
 export interface PublicAPI {
-    readonly chat?: ChatAPI;        /* namespace is 'pxt-cloud/chat' */
-    readonly users?: UsersAPI;      /* namespace is 'pxt-cloud/users' */
-    readonly world?: WorldAPI;      /* namespace is 'pxt-cloud/world' */
-
-    readonly dispose?: () => void;
+    readonly chat: ChatAPI;    /* namespace is 'pxt-cloud/chat' */
+    readonly users: UsersAPI;  /* namespace is 'pxt-cloud/users' */
+    readonly world: WorldAPI;  /* namespace is 'pxt-cloud/world' */
 }
 
 export declare function startServer(port?: number, host?: string): Promise<PublicAPI>;

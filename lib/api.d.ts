@@ -21,10 +21,9 @@ export interface ChatAPI extends EventAPI {
 export interface WorldAPI extends EventAPI {
 }
 export interface PublicAPI {
-    readonly chat?: ChatAPI;
-    readonly users?: UsersAPI;
-    readonly world?: WorldAPI;
-    readonly dispose?: () => void;
+    readonly chat: ChatAPI;
+    readonly users: UsersAPI;
+    readonly world: WorldAPI;
 }
 export declare function startServer(port?: number, host?: string): Promise<PublicAPI>;
 export declare function disposeServer(): void;

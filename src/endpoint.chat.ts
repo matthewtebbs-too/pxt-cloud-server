@@ -9,10 +9,9 @@ import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
 import * as API from './api';
-import * as API_ from './api_';
 
 import { UsersEndpoint } from './endpoint.users';
-import { Endpoint } from './endpoint_';
+import { Endpoint, Endpoints } from './endpoint_';
 
 const debug = require('debug')('pxt-cloud:endpoint:chat');
 
@@ -24,15 +23,15 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
     protected _debug: any = debug;
 
     constructor(
-        privateAPI: API_.PrivateAPI,
+        endpoints: Endpoints,
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
     ) {
-        super(privateAPI, redisClient, socketServer, 'chat');
+        super(endpoints, redisClient, socketServer, 'chat');
     }
 
     public newMessage(msg: string | API.MessageData, socket?: SocketIO.Socket): Promise<void> {
-        return (this.privateAPI.users! as any as UsersEndpoint)
+        return (this.endpoints.users! as UsersEndpoint)
             .selfInfo(socket)
             .then(user => {
                 if (typeof msg !== 'object') {

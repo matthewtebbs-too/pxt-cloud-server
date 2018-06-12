@@ -9,9 +9,8 @@ import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
 import * as API from './api';
-import * as API_ from './api_';
 
-import { Endpoint } from './endpoint_';
+import { Endpoint, Endpoints } from './endpoint_';
 
 const debug = require('debug')('pxt-cloud:endpoint:users');
 
@@ -24,11 +23,11 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
     protected _debug: any = debug;
 
     constructor(
-        privateAPI: API_.PrivateAPI,
+        endpoints: Endpoints,
         redisClient: Redis.RedisClient,
         socketServer: SocketIO.Server,
     ) {
-        super(privateAPI, redisClient, socketServer, 'users');
+        super(endpoints, redisClient, socketServer, 'users');
     }
 
     public selfInfo(socket?: SocketIO.Socket): Promise<API.UserData> {
