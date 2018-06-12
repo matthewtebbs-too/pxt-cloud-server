@@ -74,8 +74,6 @@ class Server {
             this._httpServer = (Http.createServer(Server._handler) as any as HttpServerWithShutdown).withShutdown();
 
             this._httpServer.listen(port_, host_, () => {
-                this._httpServer!.on('close', () => debug(`closed`));
-
                 debug(`listening on ${host_} at port ${port_}`);
 
                 this._socketServer = new SocketServer(this._httpServer);
@@ -114,7 +112,7 @@ class Server {
         }
 
         if (this._httpServer) {
-            this._httpServer.close();
+            this._httpServer.close(() => debug('closed'));
             this._httpServer = null;
         }
     }
@@ -145,10 +143,12 @@ class Server {
     }
 }
 
-process.on('SIGINT', () => {
-    Server.singleton.dispose();
-});
-
 export function startServer(port?: number, host?: string): Promise<API.PublicAPI> {
-    return Server.singleton.start(port, host).then(server => server.publicAPI);
+    return Server.singleton.start(port, host).then(server => ({ ...server.publicAPI, dispose: disposeServer }));
 }
+
+export function disposeServer() {
+    Server.singleton.dispose();
+}
+
+process.on('SIGINT', disposeServer);

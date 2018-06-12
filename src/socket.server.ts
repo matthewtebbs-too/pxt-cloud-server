@@ -19,7 +19,9 @@ export class SocketServer {
     constructor(server: any) {
         this._socketio = SocketIO(server);
 
-        debug(`listening`);
+        if (this._socketio) {
+            debug(`listening`);
+        }
     }
 
     public dispose() {

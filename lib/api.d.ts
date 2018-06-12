@@ -27,3 +27,4 @@ export interface PublicAPI {
     readonly dispose?: () => void;
 }
 export declare function startServer(port?: number, host?: string): Promise<PublicAPI>;
+export declare function disposeServer(): void;
