@@ -24,5 +24,6 @@ export interface PublicAPI {
     readonly chat?: ChatAPI;
     readonly users?: UsersAPI;
     readonly world?: WorldAPI;
+    readonly dispose?: () => void;
 }
 export declare function startServer(port?: number, host?: string): Promise<PublicAPI>;

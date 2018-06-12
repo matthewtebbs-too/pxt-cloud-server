@@ -81,10 +81,16 @@ class Server {
                 this._socketServer = new SocketServer(this._httpServer);
                 this._redisClient = new RedisClient();
 
+                const onInitializedRedis = () => {
+                    this._createAPI('users', UsersEndpoint);
+                    this._createAPI('chat', ChatEndpoint);
+                    this._createAPI('world', WorldEndpoint);
+                };
+
                 this._redisClient
-                    .connect(() => this._createAllAPI() /* intiialized */)
-                    .then(() => resolve(this))          /* connect success */
-                    .catch(err => reject(err));         /* connect faiure */
+                    .connect(onInitializedRedis)    /* intialized */
+                    .then(() => resolve(this))      /* connect success */
+                    .catch(reject);                 /* connect faiure */
             });
 
             this._httpServer.on('error', error => {
@@ -95,9 +101,7 @@ class Server {
     }
 
     public dispose() {
-        this._disposeAPI('world');
-        this._disposeAPI('chat');
-        this._disposeAPI('users');
+        (Object.keys(this._privateAPI) as Array<keyof API.PublicAPI>).forEach(name => this._disposeAPI(name));
 
         if (this._socketServer) {
             this._socketServer.dispose();
@@ -115,12 +119,6 @@ class Server {
         }
     }
 
-    protected _createAllAPI() {
-        this._createAPI('users', UsersEndpoint);
-        this._createAPI('chat', ChatEndpoint);
-        this._createAPI('world', WorldEndpoint);
-    }
-
     protected _createAPI<T extends keyof API.PublicAPI>(name: T, ctor: EndpointConstructor): boolean {
         const redisClient = this._redisClient ? this._redisClient.client : null;
         const socketServer = this._socketServer ? this._socketServer.server : null;
@@ -129,9 +127,8 @@ class Server {
             return false;
         }
 
-        const endpoint = new ctor(this._privateAPI, redisClient, socketServer);
-
-        this._privateAPI[name] = endpoint;
+        this._privateAPI[name] = new ctor(this._privateAPI, redisClient, socketServer);
+        debug(`created '${name}' API endpoint`);
 
         return true;
     }
