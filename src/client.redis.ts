@@ -53,7 +53,9 @@ export class RedisClient extends EventEmitter {
 
             this._redis.on('connect', () => {
                 debug(`connected`);
-                this._redis!.on('end', () => debug(`ended`));
+                if (this._redis) {
+                    this._redis.on('end', () => debug(`ended`));
+                }
             });
 
             this._redis.on('ready', () => {
