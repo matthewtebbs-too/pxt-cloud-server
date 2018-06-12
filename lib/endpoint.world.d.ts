@@ -4,5 +4,6 @@ import * as API from './api';
 import * as API_ from './api_';
 import { Endpoint } from './endpoint_';
 export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
+    protected _debug: any;
     constructor(privateAPI: API_.PrivateAPI, redisClient: Redis.RedisClient, socketServer: SocketIO.Server);
 }

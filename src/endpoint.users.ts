@@ -13,7 +13,7 @@ import * as API_ from './api_';
 
 import { Endpoint } from './endpoint_';
 
-const debug = require('debug')('pxt-cloud:endpoint.users');
+const debug = require('debug')('pxt-cloud:endpoint:users');
 
 // tslint:disable-next-line:variable-name
 const UsersDBKeys = {
@@ -21,6 +21,8 @@ const UsersDBKeys = {
 };
 
 export class UsersEndpoint extends Endpoint implements API.UsersAPI {
+    protected _debug: any = debug;
+
     constructor(
         privateAPI: API_.PrivateAPI,
         redisClient: Redis.RedisClient,

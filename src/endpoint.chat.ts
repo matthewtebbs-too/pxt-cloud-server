@@ -14,13 +14,15 @@ import * as API_ from './api_';
 import { UsersEndpoint } from './endpoint.users';
 import { Endpoint } from './endpoint_';
 
-const debug = require('debug')('pxt-cloud:endpoint.chat');
+const debug = require('debug')('pxt-cloud:endpoint:chat');
 
 // tslint:disable-next-line:variable-name
 const ChatDBKeys = {
 };
 
 export class ChatEndpoint extends Endpoint implements API.ChatAPI {
+    protected _debug: any = debug;
+
     constructor(
         privateAPI: API_.PrivateAPI,
         redisClient: Redis.RedisClient,

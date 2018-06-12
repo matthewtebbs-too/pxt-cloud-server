@@ -11,11 +11,9 @@ import * as SocketIO from 'socket.io';
 import * as API from './api';
 import { PrivateAPI } from './api_';
 
-const debug = require('debug')('pxt-cloud:endpoint');
-
 export type Callback<T> = (error: Error | null, reply?: T) => void;
 
-export class Endpoint extends EventEmitter implements API.EventAPI {
+export abstract class Endpoint extends EventEmitter implements API.EventAPI {
     public static userId = Endpoint.connectId;
 
     public static connectId(socket?: SocketIO.Socket) {
@@ -42,6 +40,8 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         promise.then(value => cb(null, value), cb);
     }
 
+    protected abstract _debug: any;
+
     private _privateAPI: PrivateAPI;
     private _redisClient: Redis.RedisClient;
 
@@ -67,13 +67,13 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
         const socketNamespace = socketServer.of(`pxt-cloud${nsp ? `/${nsp}` : ''}`);
 
         socketNamespace.on('connect', (socket: SocketIO.Socket) => {
-            debug(`${socket.id} client connected from ${socket.handshake.address}`);
+            this._debug(`${socket.id} client connected from ${socket.handshake.address}`);
 
             this._onClientConnect(socket);
         });
 
         socketNamespace.on('error', (error: Error) => {
-            debug(`${error.message}\n`);
+            this._debug(`${error.message}\n`);
         });
     }
 
@@ -99,7 +99,7 @@ export class Endpoint extends EventEmitter implements API.EventAPI {
 
     protected _onClientConnect(socket: SocketIO.Socket) {
         socket.on('disconnect', reason => {
-            debug(`${socket.id} client disconnected from ${socket.handshake.address} (${reason})`);
+            this._debug(`${socket.id} client disconnected from ${socket.handshake.address} (${reason})`);
 
             this._onClientDisconnect(socket);
         });

@@ -5,11 +5,12 @@ import * as SocketIO from 'socket.io';
 import * as API from './api';
 import { PrivateAPI } from './api_';
 export declare type Callback<T> = (error: Error | null, reply?: T) => void;
-export declare class Endpoint extends EventEmitter implements API.EventAPI {
+export declare abstract class Endpoint extends EventEmitter implements API.EventAPI {
     static userId: typeof Endpoint.connectId;
     static connectId(socket?: SocketIO.Socket): string;
     protected static _extractSocketFromArgs(args: any[]): [any[], any];
     protected static _fulfillReceivedEvent<T>(promise: Promise<T>, cb: Callback<T>): void;
+    protected abstract _debug: any;
     private _privateAPI;
     private _redisClient;
     protected readonly privateAPI: PrivateAPI;
