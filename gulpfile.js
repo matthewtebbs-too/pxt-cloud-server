@@ -37,7 +37,8 @@ gulp.task('build', function () {
 
     return merge([
         result.js.pipe(gulp.dest(BUILT)),
-        result.dts.pipe(gulp.dest(BUILT_TYPINGS))
+        result.dts.pipe(gulp.dest(BUILT_TYPINGS)),
+        gulp.src(SRC.concat('pxtcloud.d.ts')).pipe(gulp.dest(BUILT_TYPINGS)),
     ]);
 });
 
