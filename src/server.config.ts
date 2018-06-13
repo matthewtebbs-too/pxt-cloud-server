@@ -16,7 +16,7 @@ export class ServerConfig {
 
 debug(
 `Configuration:-
-    host:       ${ServerConfig.host}
-    port:       ${ServerConfig.port}
-    Redis host: ${ServerConfig.redishost}
-    Redis port: ${ServerConfig.redisport}`);
+    Host [PXT_CLOUD_HOST]:              ${ServerConfig.host}
+    Port [PXT_CLOUD_PORT]:              ${ServerConfig.port}
+    Redis host [PXT_CLOUD_REDISHOST]:   ${ServerConfig.redishost}
+    Redis port [PXT_CLOUD_REDISPORT]:   ${ServerConfig.redisport}`);
