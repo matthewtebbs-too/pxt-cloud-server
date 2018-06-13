@@ -8,6 +8,7 @@
 const debug = require('debug')('pxt-cloud:api');
 
 export interface EventAPI {
+    isConnected: boolean;
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 }
 

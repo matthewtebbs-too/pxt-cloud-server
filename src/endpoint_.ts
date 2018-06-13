@@ -41,6 +41,11 @@ export abstract class Endpoint extends EventEmitter implements API.EventAPI {
 
     protected abstract _debug: any;
 
+    public get isConnected(): boolean {
+        return !!this._socketNamespace;
+    }
+
+    private _socketNamespace: SocketIO.Namespace | null = null;
     private _endpoints: Endpoints;
     private _redisClient: Redis.RedisClient;
 
@@ -60,10 +65,11 @@ export abstract class Endpoint extends EventEmitter implements API.EventAPI {
     ) {
         super();
 
+        const socketNamespace = socketServer.of(`pxt-cloud${nsp ? `/${nsp}` : ''}`);
+        this._socketNamespace = socketNamespace;
+
         this._endpoints = endpoints;
         this._redisClient = redisClient;
-
-        const socketNamespace = socketServer.of(`pxt-cloud${nsp ? `/${nsp}` : ''}`);
 
         socketNamespace.on('connect', (socket: SocketIO.Socket) => {
             this._debug(`${socket.id} client connected from ${socket.handshake.address}`);
@@ -77,7 +83,7 @@ export abstract class Endpoint extends EventEmitter implements API.EventAPI {
     }
 
     public dispose() {
-        /* do nothing */
+        this._socketNamespace = null;
     }
 
     protected _notifyEvent(event: string, ...args: any[]): boolean {

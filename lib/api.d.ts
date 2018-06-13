@@ -1,4 +1,5 @@
 export interface EventAPI {
+    isConnected: boolean;
     on(event: string | symbol, listener: (...args: any[]) => void): this;
 }
 export declare type UserId = string;

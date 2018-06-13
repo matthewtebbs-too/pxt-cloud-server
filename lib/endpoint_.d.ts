@@ -10,6 +10,8 @@ export declare abstract class Endpoint extends EventEmitter implements API.Event
     protected static _extractSocketFromArgs(args: any[]): [any[], any];
     protected static _fulfillReceivedEvent<T>(promise: Promise<T>, cb: Callback<T>): void;
     protected abstract _debug: any;
+    readonly isConnected: boolean;
+    private _socketNamespace;
     private _endpoints;
     private _redisClient;
     protected readonly endpoints: Endpoints;
