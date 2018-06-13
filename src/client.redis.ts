@@ -10,7 +10,7 @@ import * as Redis from 'redis';
 
 import { ServerConfig } from './server.config';
 
-const debug = require('debug')('pxt-cloud:redis');
+const debug = require('debug')('pxt-cloud:server:redis');
 
 export class RedisClient extends EventEmitter {
     /* Reference: https://github.com/NodeRedis/node_redis */

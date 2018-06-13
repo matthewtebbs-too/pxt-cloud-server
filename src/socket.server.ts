@@ -7,7 +7,7 @@
 
 import * as SocketIO from 'socket.io';
 
-const debug = require('debug')('pxt-cloud:socket.server');
+const debug = require('debug')('pxt-cloud:server:sockets');
 
 export class SocketServer {
     public get server(): SocketIO.Server | null {

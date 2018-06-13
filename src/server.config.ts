@@ -4,6 +4,8 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
+const debug = require('debug')('pxt-cloud:server');
+
 export class ServerConfig {
     public static host = process.env.PXT_CLOUD_HOST || 'localhost';
     public static port = process.env.PXT_CLOUD_PORT ? parseInt(process.env.PXT_CLOUD_PORT, 10) : 3000;
@@ -11,3 +13,10 @@ export class ServerConfig {
     public static redishost = process.env.PXT_CLOUD_REDISHOST || 'localhost';
     public static redisport = process.env.PXT_CLOUD_REDISPORT ? parseInt(process.env.PXT_CLOUD_REDISPORT, 10) : 6379;
 }
+
+debug(
+`Configuration:-
+    host:       ${ServerConfig.host}
+    port:       ${ServerConfig.port}
+    Redis host: ${ServerConfig.redishost}
+    Redis port: ${ServerConfig.redisport}`);

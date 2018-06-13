@@ -5,7 +5,7 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-const debug = require('debug')('pxt-cloud:api');
+const debug = require('debug')('pxt-cloud::server:api');
 
 export interface EventAPI {
     isConnected: boolean;
