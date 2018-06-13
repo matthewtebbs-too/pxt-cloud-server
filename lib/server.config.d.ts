@@ -3,5 +3,4 @@ export declare class ServerConfig {
     static port: number;
     static redishost: string;
     static redisport: number;
-    static readonly serverUri: string;
 }

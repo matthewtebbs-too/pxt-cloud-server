@@ -10,7 +10,7 @@
 var commonjs = require('rollup-plugin-commonjs');
 var resolve = require('rollup-plugin-node-resolve');
 
-var dependencies = Object.keys(require('./package.json').dependencies).concat('events', 'fs', 'http', 'path');
+var dependencies = Object.keys(require('./package.json').dependencies).concat('events', 'fs', 'http', 'https', 'path');
 
 export default {
     rollup: require('rollup'),

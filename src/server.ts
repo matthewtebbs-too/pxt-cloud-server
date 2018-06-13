@@ -6,6 +6,7 @@
 
 import * as FS from 'fs';
 import * as Http from 'http';
+import * as Https from 'https';
 require('http-shutdown').extend();
 import * as Path from 'path';
 import * as Redis from 'redis';
@@ -74,9 +75,18 @@ class Server {
         this.dispose();
 
         return new Promise((resolve, reject) => {
-            this._httpServer = (Http.createServer(Server._handler) as any as HttpServerWithShutdown).withShutdown();
+            const options = {
+                cert: FS.readFileSync('./test/keys/localhost.crt'), /* TODO$: use CA issued certificate */
+                key: FS.readFileSync('./test/keys/localhost.key'),
+                rejectUnauthorized: false,
+                requestCert: false,
+            };
 
-            this._httpServer.listen(port_, host_, () => {
+            const httpServer = (Https.createServer(options, Server._handler) as any as HttpServerWithShutdown).withShutdown();
+
+            this._httpServer = httpServer;
+
+            httpServer.listen(port_, host_, () => {
                 debug(`listening on ${host_} at port ${port_}`);
 
                 this._socketServer = new SocketServer(this._httpServer);
@@ -94,7 +104,7 @@ class Server {
                     .catch(reject);                 /* connect faiure */
             });
 
-            this._httpServer.on('error', error => {
+            httpServer.on('error', error => {
                 debug(`${error.message}\n`);
                 reject(error);
             });

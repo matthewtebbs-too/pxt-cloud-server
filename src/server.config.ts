@@ -10,8 +10,4 @@ export class ServerConfig {
 
     public static redishost = process.env.PXT_CLOUD_REDISHOST || 'localhost';
     public static redisport = process.env.PXT_CLOUD_REDISPORT ? parseInt(process.env.PXT_CLOUD_REDISPORT, 10) : 6379;
-
-    public static get serverUri() {
-        return `http://${ServerConfig.host}:${ServerConfig.port}`;
-    }
 }
