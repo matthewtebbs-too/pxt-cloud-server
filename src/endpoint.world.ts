@@ -5,6 +5,8 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
+/// <reference types='redis.extra' />
+
 import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 

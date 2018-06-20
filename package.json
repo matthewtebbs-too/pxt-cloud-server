@@ -26,6 +26,7 @@
     "dotenv": "^5.0.1",
     "http-shutdown": "^1.2.0",
     "redis": "^2.8.0",
+    "redis-commands": "github:muddytummy/redis-commands#beta",
     "socket.io": "^2.1.1"
   },
   "devDependencies": {
