@@ -30,10 +30,6 @@ export interface SyncedData<T> {
     latest?: T;
 }
 export interface WorldAPI extends CommonAPI {
-    addSyncedData<T>(name: string, source: SyncedDataSource<T>): boolean;
-    removeSyncedData(name: string): boolean;
-    syncData<T>(name: string): PromiseLike<string[]>;
-    syncDiff(name: string, diff: any | any[]): PromiseLike<string[]>;
 }
 export interface PublicAPI {
     readonly chat: ChatAPI;
