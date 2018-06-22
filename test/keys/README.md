@@ -3,6 +3,6 @@
 Generated using openssl, e.g.
 
 ```bash
-openssl genrsa -out localhost.key 2048
-openssl req -new -x509 -key localhost.key -out localhost.crt -days 3650 -subj /CN=localhost
+/usr/local/opt/openssl/bin/openssl genrsa -out localhost.key 2048
+/usr/local/opt/openssl/bin/openssl req -new -x509 -days 365 -key localhost.key -out localhost.crt -config localhost.cnf
 ```

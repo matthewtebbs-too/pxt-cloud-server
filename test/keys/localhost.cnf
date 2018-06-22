@@ -1,0 +1,39 @@
+[ req ]
+default_bits				= 2048
+default_md					= sha256
+prompt						= no
+distinguished_name			= req_distinguished_name
+attributes					= req_attributes
+req_extensions 				= v3_req
+x509_extensions 			= x509_sign
+
+[ req_distinguished_name ]
+countryName					= US
+stateOrProvinceName			= Washington
+localityName				= Seattle
+
+0.organizationName			= MuddyTummy Software LLC
+organizationalUnitName		= Impetus
+
+commonName					= localhost
+
+emailAddress				= contact@muddytummy.com
+
+[ req_attributes ]
+
+[ v3_req ] 
+
+[ x509_sign ]
+
+authorityKeyIdentifier		= keyid,issuer
+basicConstraints 			= CA:FALSE
+keyUsage 					= digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName 				= @alt_names
+subjectKeyIdentifier		= hash
+
+[ alt_names ]
+
+DNS.1 						= localhost
+IP.1						= 127.0.0.1
+
+
