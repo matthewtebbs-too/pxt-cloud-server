@@ -30,7 +30,7 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
         super(endpoints, redisClient, socketServer, 'chat');
     }
 
-    public newMessage(msg: string | API.MessageData, socket?: SocketIO.Socket): Promise<void> {
+    public newMessage(msg: string | API.MessageData, socket?: SocketIO.Socket): PromiseLike<void> {
         return (this.endpoints.users! as UsersEndpoint)
             .selfInfo(socket)
             .then(user => {

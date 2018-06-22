@@ -8,7 +8,7 @@ export declare abstract class Endpoint extends EventEmitter implements API.Event
     static userId: typeof Endpoint.connectId;
     static connectId(socket?: SocketIO.Socket): string;
     protected static _extractSocketFromArgs(args: any[]): [any[], any];
-    protected static _fulfillReceivedEvent<T>(promise: Promise<T>, cb: Callback<T>): void;
+    protected static _fulfillReceivedEvent<T>(promise: PromiseLike<T>, cb: Callback<T>): void;
     protected abstract _debug: any;
     readonly isConnected: boolean;
     private _socketNamespace;
@@ -24,5 +24,5 @@ export declare abstract class Endpoint extends EventEmitter implements API.Event
     protected _onClientDisconnect(socket: SocketIO.Socket): void;
 }
 export declare type Endpoints = {
-    [E in keyof API.PublicAPI]: Endpoint & API.PublicAPI[E] | null;
+    [E in keyof API.PublicAPI]: (Endpoint & API.PublicAPI[E]) | null;
 };

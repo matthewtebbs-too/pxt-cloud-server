@@ -13,8 +13,8 @@ declare module 'redis' {
         /***
          * Appends the specified stream entry to the stream at the specified key.
          */
-        xadd: OverloadedSetCommand<string | number, boolean, R>;
-        XADD: OverloadedSetCommand<string | number, boolean, R>;
+        xadd: OverloadedSetCommand<string | number, string, R>;
+        XADD: OverloadedSetCommand<string | number, string, R>;
 
         /**
          * Returns the number of entries inside a stream.

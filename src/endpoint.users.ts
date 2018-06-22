@@ -30,7 +30,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         super(endpoints, redisClient, socketServer, 'users');
     }
 
-    public selfInfo(socket?: SocketIO.Socket): Promise<API.UserData> {
+    public selfInfo(socket?: SocketIO.Socket): PromiseLike<API.UserData> {
         return new Promise((resolve, reject) => {
             const userId = Endpoint.userId(socket);
             const userkey = UsersDBKeys.user(userId);
@@ -53,7 +53,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         });
     }
 
-    public addSelf(user: API.UserData, socket?: SocketIO.Socket): Promise<boolean> {
+    public addSelf(user: API.UserData, socket?: SocketIO.Socket): PromiseLike<boolean> {
         return new Promise((resolve, reject) => {
             const userId = Endpoint.userId(socket);
             const userkey = UsersDBKeys.user(userId);
@@ -82,7 +82,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         });
     }
 
-    public removeSelf(socket?: SocketIO.Socket): Promise<boolean> {
+    public removeSelf(socket?: SocketIO.Socket): PromiseLike<boolean> {
         return new Promise((resolve, reject) => {
             const userId = Endpoint.userId(socket);
             const userkey = UsersDBKeys.user(userId);

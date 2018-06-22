@@ -30,9 +30,9 @@ export interface UserData {
 */
 
 export interface UsersAPI extends EventAPI {
-    selfInfo(): Promise<UserData>;
-    addSelf(user: UserData): Promise<boolean>;
-    removeSelf(): Promise<boolean>;
+    selfInfo(): PromiseLike<UserData>;
+    addSelf(user: UserData): PromiseLike<boolean>;
+    removeSelf(): PromiseLike<boolean>;
 }
 
 export interface MessageData {
@@ -48,10 +48,26 @@ export interface MessageData {
 */
 
 export interface ChatAPI extends EventAPI {
-    newMessage(msg: string | MessageData): Promise<void>;
+    newMessage(msg: string | MessageData): PromiseLike<void>;
+}
+
+export interface SyncedDataSource<T> {
+    readonly data: T;
+    readonly cloner?: (value: any) => any;
+}
+
+export interface SyncedData<T> {
+    readonly source: SyncedDataSource<T>;
+    timestamp?: string;
+    latest?: T;
 }
 
 export interface WorldAPI extends EventAPI {
+    addSyncedData<T>(name: string, source: SyncedDataSource<T>): boolean;
+    removeSyncedData(name: string): boolean;
+
+    syncData<T>(name: string): PromiseLike<string[]>;
+    syncDiff(name: string, diff: any | any[] /* deep-diff's IDiff */): PromiseLike<string[]>;
 }
 
 export interface PublicAPI {
@@ -59,6 +75,3 @@ export interface PublicAPI {
     readonly users: UsersAPI;  /* namespace is 'pxt-cloud/users' */
     readonly world: WorldAPI;  /* namespace is 'pxt-cloud/world' */
 }
-
-export declare function startServer(port?: number, host?: string): Promise<PublicAPI>;
-export declare function disposeServer(): void;

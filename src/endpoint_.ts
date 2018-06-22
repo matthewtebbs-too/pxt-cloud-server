@@ -35,7 +35,7 @@ export abstract class Endpoint extends EventEmitter implements API.EventAPI {
         return [ args, socket ];
     }
 
-    protected static _fulfillReceivedEvent<T>(promise: Promise<T>, cb: Callback<T>) {
+    protected static _fulfillReceivedEvent<T>(promise: PromiseLike<T>, cb: Callback<T>) {
         promise.then(value => cb(null, value), cb);
     }
 
@@ -115,4 +115,4 @@ export abstract class Endpoint extends EventEmitter implements API.EventAPI {
     }
 }
 
-export type Endpoints = { [E in keyof API.PublicAPI]: Endpoint & API.PublicAPI[E] | null };
+export type Endpoints = { [E in keyof API.PublicAPI]: (Endpoint & API.PublicAPI[E]) | null };

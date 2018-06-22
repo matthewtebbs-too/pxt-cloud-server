@@ -43,7 +43,7 @@ export class RedisClient extends EventEmitter {
 
     protected _redis: Redis.RedisClient | null = null;
 
-    public connect(initialized: () => void, port_: number = ServerConfig.redisport, host_: string = ServerConfig.redishost): Promise<this> {
+    public connect(initialized: () => void, port_: number = ServerConfig.redisport, host_: string = ServerConfig.redishost): PromiseLike<this> {
         this.dispose();
 
         return new Promise((resolve, reject) => {

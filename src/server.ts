@@ -71,7 +71,7 @@ class Server {
         world: null,
     };
 
-    public start(port_: number = ServerConfig.port, host_: string = ServerConfig.host): Promise<this> {
+    public start(port_: number = ServerConfig.port, host_: string = ServerConfig.host): PromiseLike<this> {
         this.dispose();
 
         return new Promise((resolve, reject) => {
@@ -99,9 +99,8 @@ class Server {
                 };
 
                 this._redisClient
-                    .connect(onInitializedRedis)    /* intialized */
-                    .then(() => resolve(this))      /* connect success */
-                    .catch(reject);                 /* connect faiure */
+                    .connect(onInitializedRedis)        /* intialized */
+                    .then(() => resolve(this), reject); /* connect success */
             });
 
             httpServer.on('error', error => {
@@ -138,7 +137,7 @@ class Server {
             return false;
         }
 
-        this._endpoints[name] = new ctor(this._endpoints, redisClient, socketServer);
+        (this._endpoints[name] as Endpoint) = new ctor(this._endpoints, redisClient, socketServer);
         debug(`created '${name}' API endpoint`);
 
         return true;
@@ -156,7 +155,7 @@ class Server {
     }
 }
 
-export function startServer(port?: number, host?: string): Promise<API.PublicAPI> {
+export function startServer(port?: number, host?: string): PromiseLike<API.PublicAPI> {
     return Server.singleton.start(port, host).then(server => ({ ...server.publicAPI }));
 }
 
