@@ -12,7 +12,7 @@ import * as API from './api';
 
 export type Callback<T> = (error: Error | null, reply?: T) => void;
 
-export abstract class Endpoint extends EventEmitter implements API.EventAPI {
+export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
     public static userId = Endpoint.connectId;
 
     public static connectId(socket?: SocketIO.Socket) {
@@ -38,6 +38,8 @@ export abstract class Endpoint extends EventEmitter implements API.EventAPI {
     protected static _fulfillReceivedEvent<T>(promise: PromiseLike<T>, cb: Callback<T>) {
         promise.then(value => cb(null, value), cb);
     }
+
+    public readonly off = super.removeListener;
 
     protected abstract _debug: any;
 

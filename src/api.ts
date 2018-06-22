@@ -7,9 +7,10 @@
 
 const debug = require('debug')('pxt-cloud::server:api');
 
-export interface EventAPI {
+export interface CommonAPI {
     isConnected: boolean;
     on(event: string | symbol, listener: (...args: any[]) => void): this;
+    off(event: string | symbol, listener: (...args: any[]) => void): this;
 }
 
 export type UserId = string;
@@ -29,7 +30,7 @@ export interface UserData {
     'remove self'
 */
 
-export interface UsersAPI extends EventAPI {
+export interface UsersAPI extends CommonAPI {
     selfInfo(): PromiseLike<UserData>;
     addSelf(user: UserData): PromiseLike<boolean>;
     removeSelf(): PromiseLike<boolean>;
@@ -47,7 +48,7 @@ export interface MessageData {
     'new message'
 */
 
-export interface ChatAPI extends EventAPI {
+export interface ChatAPI extends CommonAPI {
     newMessage(msg: string | MessageData): PromiseLike<void>;
 }
 
@@ -62,7 +63,7 @@ export interface SyncedData<T> {
     latest?: T;
 }
 
-export interface WorldAPI extends EventAPI {
+export interface WorldAPI extends CommonAPI {
     addSyncedData<T>(name: string, source: SyncedDataSource<T>): boolean;
     removeSyncedData(name: string): boolean;
 
