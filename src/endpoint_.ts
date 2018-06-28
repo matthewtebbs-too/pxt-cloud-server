@@ -8,7 +8,7 @@ import { EventEmitter } from 'events';
 import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
-import * as API from './api';
+import { API } from './api';
 
 export type Callback<T> = (error: Error | null, reply?: T) => void;
 
