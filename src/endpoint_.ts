@@ -75,8 +75,12 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
 
         socketNamespace.on('connect', (socket: SocketIO.Socket) => {
             this._debug(`${socket.id} client connected from ${socket.handshake.address}`);
-
             this._onClientConnect(socket);
+
+            socket.on('disconnect', reason => {
+                this._debug(`${socket.id} client disconnected from ${socket.handshake.address} (${reason})`);
+                this._onClientDisconnect(socket);
+            });
         });
 
         socketNamespace.on('error', (error: Error) => {
@@ -105,11 +109,7 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
-        socket.on('disconnect', reason => {
-            this._debug(`${socket.id} client disconnected from ${socket.handshake.address} (${reason})`);
-
-            this._onClientDisconnect(socket);
-        });
+        /* do nothing */
     }
 
     protected _onClientDisconnect(socket: SocketIO.Socket) {
