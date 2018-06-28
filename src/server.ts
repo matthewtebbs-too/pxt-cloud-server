@@ -103,6 +103,8 @@ class Server {
                     .then(() => resolve(this), reject); /* connect success */
             });
 
+            httpServer.on('close', () => debug('closed'));
+
             httpServer.on('error', error => {
                 debug(`${error.message}\n`);
                 reject(error);
@@ -124,7 +126,7 @@ class Server {
         }
 
         if (this._httpServer) {
-            this._httpServer.close(() => debug('closed'));
+            this._httpServer.shutdown();
             this._httpServer = null;
         }
     }
