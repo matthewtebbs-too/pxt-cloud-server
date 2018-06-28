@@ -1,5 +1,10 @@
 export declare enum Events {
-    Foo = "Foo"
+    ChatNewMessage = "new message",
+    UserAddSelf = "add self",
+    UserLeft = "user left",
+    UserJoined = "user joined",
+    UserRemoveSelf = "remove self",
+    UserSelfInfo = "self info"
 }
 export interface CommonAPI {
     isConnected: boolean;

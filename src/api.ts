@@ -8,7 +8,12 @@
 const debug = require('debug')('pxt-cloud::server:api');
 
 export enum Events {
-    Foo = 'Foo',
+    ChatNewMessage = 'new message',
+    UserAddSelf = 'add self',
+    UserLeft = 'user left',
+    UserJoined = 'user joined',
+    UserRemoveSelf = 'remove self',
+    UserSelfInfo = 'self info',
 }
 
 export interface CommonAPI {
@@ -25,15 +30,6 @@ export interface UserData {
     readonly id?: UserId;   /* reply only */
 }
 
-/*
-    Events:-
-
-    'user joined'
-    'user left'
-    'add self'
-    'remove self'
-*/
-
 export interface UsersAPI extends CommonAPI {
     selfInfo(): PromiseLike<UserData>;
     addSelf(user: UserData): PromiseLike<boolean>;
@@ -45,12 +41,6 @@ export interface MessageData {
 
     readonly name?: string; /* reply only */
 }
-
-/*
-    Events:-
-
-    'new message'
-*/
 
 export interface ChatAPI extends CommonAPI {
     newMessage(msg: string | MessageData): PromiseLike<void>;

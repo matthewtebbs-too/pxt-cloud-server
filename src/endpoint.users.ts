@@ -74,7 +74,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
                     const existed = !!reply && reply[0] as boolean; /* reply from exists */
 
                     if (!existed) {
-                        this._broadcastNotifyEvent('user joined', userId, user, socket);
+                        this._broadcastNotifyEvent(API.Events.UserJoined, userId, user, socket);
                     }
 
                     resolve(existed);
@@ -99,7 +99,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
                     const existed = !!reply; /* reply from del */
 
                     if (existed) {
-                        this._broadcastNotifyEvent('user left', userId, socket);
+                        this._broadcastNotifyEvent(API.Events.UserLeft, userId, socket);
                     }
 
                     resolve(existed);
@@ -111,8 +111,8 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         super._onClientConnect(socket);
 
         socket
-            .on('self info', cb => Endpoint._fulfillReceivedEvent(this.selfInfo(socket), cb))
-            .on('add self', (user, cb) => Endpoint._fulfillReceivedEvent(this.addSelf(user, socket), cb))
-            .on('remove self', cb => Endpoint._fulfillReceivedEvent(this.removeSelf(socket), cb));
+            .on(API.Events.UserSelfInfo, cb => Endpoint._fulfillReceivedEvent(this.selfInfo(socket), cb))
+            .on(API.Events.UserAddSelf, (user, cb) => Endpoint._fulfillReceivedEvent(this.addSelf(user, socket), cb))
+            .on(API.Events.UserRemoveSelf, cb => Endpoint._fulfillReceivedEvent(this.removeSelf(socket), cb));
     }
 }

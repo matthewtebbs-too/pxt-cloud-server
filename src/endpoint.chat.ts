@@ -38,13 +38,13 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
                     msg = { text: msg };
                 }
 
-                this._broadcastNotifyEvent('new message', { ...msg, name: user.name }, socket);
+                this._broadcastNotifyEvent(API.Events.ChatNewMessage, { ...msg, name: user.name }, socket);
             });
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
         super._onClientConnect(socket);
 
-        socket.on('new message', (msg, cb) => Endpoint._fulfillReceivedEvent(this.newMessage(msg, socket), cb));
+        socket.on(API.Events.ChatNewMessage, (msg, cb) => Endpoint._fulfillReceivedEvent(this.newMessage(msg, socket), cb));
     }
 }
