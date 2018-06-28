@@ -1,6 +1,6 @@
 import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
-import { API } from './api';
+import * as API from './api';
 import { Endpoint, Endpoints } from './endpoint_';
 export declare class UsersEndpoint extends Endpoint implements API.UsersAPI {
     protected _debug: any;

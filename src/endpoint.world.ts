@@ -16,7 +16,7 @@ import * as Promise from 'bluebird';
 import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
-import { API } from './api';
+import * as API from './api';
 
 import { Endpoint, Endpoints } from './endpoint_';
 

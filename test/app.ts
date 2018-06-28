@@ -8,7 +8,7 @@ import * as PxtCloud from '..';
 
 const debug = require('debug')('pxt-cloud:test');
 
-function run(api: PxtCloud.API.PublicAPI) {
+function run(api: PxtCloud.PublicAPI) {
     // const mydata = {
     //     a: [1, 2, 3],
     //     n: 42,
