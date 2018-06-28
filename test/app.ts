@@ -4,28 +4,10 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-import * as PxtCloud from '..';
+import * as API from 'pxt-cloud-api';
 
-const debug = require('debug')('pxt-cloud:test');
+import * as PxtCloudServer from '..';
 
-function run(api: PxtCloud.PublicAPI) {
-    // const mydata = {
-    //     a: [1, 2, 3],
-    //     n: 42,
-    //     s: 'Joe',
-    // };
+const debug = require('debug')('pxt-cloud:server:test');
 
-    // api.world.addSyncedData('foo', { data: mydata });
-
-    // api.world.syncData('foo').then(debug, debug);
-
-    // mydata.s = 'Billy';
-
-    // api.world.syncData('foo').then(debug, debug);
-
-    // mydata.a = mydata.a.concat(4);
-
-    // api.world.syncData('foo').then(debug, debug);
-}
-
-PxtCloud.startServer().then(run, debug);
+PxtCloudServer.startServer().then(debug, debug);

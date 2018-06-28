@@ -2,7 +2,7 @@
 import { EventEmitter } from 'events';
 import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
-import * as API from './api';
+import * as API from 'pxt-cloud-api';
 export declare type Callback<T> = (error: Error | null, reply?: T) => void;
 export declare abstract class Endpoint extends EventEmitter implements API.CommonAPI {
     static userId: typeof Endpoint.connectId;

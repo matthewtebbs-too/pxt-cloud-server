@@ -8,7 +8,7 @@
 import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
-import * as API from './api';
+import * as API from 'pxt-cloud-api';
 
 import { Endpoint, Endpoints } from './endpoint_';
 

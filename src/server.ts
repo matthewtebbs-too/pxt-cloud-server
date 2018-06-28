@@ -16,7 +16,7 @@ import { RedisClient } from './client.redis';
 import { ServerConfig } from './server.config';
 import { SocketServer } from './socket.server';
 
-import * as API from './api';
+import * as API from 'pxt-cloud-api';
 
 import { ChatEndpoint } from './endpoint.chat';
 import { UsersEndpoint } from './endpoint.users';

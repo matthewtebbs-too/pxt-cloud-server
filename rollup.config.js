@@ -17,10 +17,9 @@ export default {
 
     input: './built/server.js',
     output: {
+        exports: 'named',
         format: 'cjs',
-        name: 'pxtcloud',
         sourcemap: false,
-        exports: 'named'
     },
     plugins: [
         commonjs(),

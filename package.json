@@ -1,7 +1,7 @@
 {
-  "name": "pxt-cloud",
+  "name": "pxt-cloud-server",
   "version": "0.1.0",
-  "description": "Cloud support for [Microsoft MakeCode (PXT)]",
+  "description": "Server support for [Microsoft MakeCode (PXT)] cloud",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "files": [
@@ -9,15 +9,15 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/muddytummy/pxt-cloud.git"
+    "url": "git+https://github.com/muddytummy/pxt-cloud-server.git"
   },
   "author": "Matthew Tebbs <matthew@muddytummy.com>",
   "publisher": "MuddyTummy Software LLC",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/muddytummy/pxt-cloud/issues"
+    "url": "https://github.com/muddytummy/pxt-cloud-server/issues"
   },
-  "homepage": "https://github.com/muddytummy/pxt-cloud#readme",
+  "homepage": "https://github.com/muddytummy/pxt-cloud-server#readme",
   "dependencies": {
     "@types/bluebird": "^3.5.20",
     "@types/deep-diff": "0.0.31",
@@ -30,6 +30,7 @@
     "deep-diff": "^1.0.1",
     "dotenv": "^5.0.1",
     "http-shutdown": "^1.2.0",
+    "pxt-cloud-api": "github:muddytummy/pxt-cloud-api",
     "redis": "^2.8.0",
     "redis-commands": "github:muddytummy/redis-commands#beta",
     "socket.io": "^2.1.1"
