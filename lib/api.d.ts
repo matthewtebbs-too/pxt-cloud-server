@@ -1,3 +1,6 @@
+export declare enum Events {
+    Foo = "Foo"
+}
 export interface CommonAPI {
     isConnected: boolean;
     on(event: string | symbol, listener: (...args: any[]) => void): this;
