@@ -5,16 +5,12 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-// tslint:disable-next-line:variable-name
-const CloneDeep = require('clone-deep');
-import * as DiffDeep from 'deep-diff';
-
 import * as Promise from 'bluebird';
-
-/// <reference types='redis.extra' />
 
 import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
+
+/// <reference types='redis.extra' />
 
 import * as API from 'pxt-cloud-api';
 
@@ -30,7 +26,7 @@ const WorldDBKeys = {
 export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     protected _debug: any = debug;
 
-    private _synceddata = new Map<string, API.SyncedData<any>>();
+    private _datarepo = new API.DataRepo();
 
     constructor(
         endpoints: Endpoints,
@@ -40,43 +36,19 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         super(endpoints, redisClient, socketServer, 'world');
     }
 
-    public addSyncedData<T>(name: string, source_: API.SyncedDataSource<T>): boolean {
-        const exists = this._synceddata.has(name);
-
-        if (!exists) {
-            this._synceddata.set(name, { source: source_ });
-        }
-
-        return exists;
+    public addDataSource(name: string, source: API.DataSource): boolean {
+        return this._datarepo.addDataSource(name, source);
     }
 
-    public removeSyncedData(name: string): boolean {
-        return this._synceddata.delete(name);
+    public removeDataSource(name: string): boolean {
+        return this._datarepo.removeDataSource(name);
     }
 
-    public syncData<T>(name: string): Promise<string[]> {
-        return new Promise((resolve, reject) => {
-            const data = this._synceddata.get(name) as API.SyncedData<T>;
-            if (!data) {
-                reject();
-                return;
-            }
-
-            const latest = CloneDeep(data.source, data.source.cloner);
-            const diff = DiffDeep.diff(data.latest || {}, latest);
-            if (!diff) {
-                reject();
-                return;
-            }
-
-            data.latest = latest;
-
-            this.syncDiff(name, diff)
-                .then(resolve, reject);
-        });
+    public syncData(name: string): PromiseLike<string[]> {
+        return this.syncDiff(name, this._datarepo.syncData(name), false);
     }
 
-    public syncDiff(name: string, diff: any | any[] /* deep-diff's IDiff */): PromiseLike<string[]> {
+    public syncDiff(name: string, diff: any | any[] /* deep-diff's IDiff */, apply: boolean = true): PromiseLike<string[]> {
         return Promise.mapSeries(
             Array.isArray(diff) ? diff : [diff],
 
@@ -99,7 +71,12 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                         }
 
                         resolve(reply);
-                    });
+                    },
+                );
+
+                if (apply) {
+                    this._datarepo.applyDiffs(name, diff_);
+                }
             }));
     }
 }
