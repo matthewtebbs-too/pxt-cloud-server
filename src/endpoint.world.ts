@@ -75,8 +75,18 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                 );
 
                 if (apply) {
+                    debug(name);
+                    debug(diff_);
                     this._datarepo.applyDataDiffs(name, diff_);
                 }
             }));
+    }
+
+    protected _onClientConnect(socket: SocketIO.Socket) {
+        super._onClientConnect(socket);
+
+        socket
+            .on(API.Events.WorldSyncDiff, ({ name, diff }, cb) =>
+                Endpoint._fulfillReceivedEvent(this.syncDiff(name, diff), cb));
     }
 }

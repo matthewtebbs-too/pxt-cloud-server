@@ -10,4 +10,5 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     removeDataSource(name: string): boolean;
     syncData(name: string): PromiseLike<string[]>;
     syncDiff(name: string, diff: any | any[], apply?: boolean): PromiseLike<string[]>;
+    protected _onClientConnect(socket: SocketIO.Socket): void;
 }
