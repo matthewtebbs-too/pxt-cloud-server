@@ -75,8 +75,6 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                 );
 
                 if (apply) {
-                    debug(name);
-                    debug(diff_);
                     this._datarepo.applyDataDiffs(name, diff_);
                 }
             }));
