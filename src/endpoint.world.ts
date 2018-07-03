@@ -48,7 +48,11 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         return this.syncDiff(name, this._datarepo.syncData(name), false);
     }
 
-    public syncDiff(name: string, diff: any | any[] /* deep-diff's IDiff */, apply: boolean = true): PromiseLike<string[]> {
+    public syncDiff(name: string, diff: any /* deep-diff's IDiff */, apply: boolean = true): PromiseLike<string[]> {
+        if (!diff) {
+            return Promise.resolve([]);
+        }
+
         return Promise.mapSeries(
             Array.isArray(diff) ? diff : [diff],
 
@@ -76,6 +80,8 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
                 if (apply) {
                     this._datarepo.applyDataDiffs(name, diff_);
+
+                    debug(this._datarepo.currentlySynced(name));
                 }
             }));
     }
