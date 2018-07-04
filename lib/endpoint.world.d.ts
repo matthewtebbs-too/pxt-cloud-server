@@ -8,7 +8,7 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     constructor(endpoints: Endpoints, redisClient: Redis.RedisClient, socketServer: SocketIO.Server);
     addDataSource(name: string, source: API.DataSource): boolean;
     removeDataSource(name: string): boolean;
-    syncData(name: string): PromiseLike<string[]>;
-    syncDiff(name: string, diff: any, apply?: boolean): PromiseLike<string[]>;
+    syncDataSource(name: string): PromiseLike<string[]>;
+    syncDataDiff(name: string, diff: any, apply?: boolean): PromiseLike<string[]>;
     protected _onClientConnect(socket: SocketIO.Socket): void;
 }

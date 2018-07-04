@@ -44,11 +44,13 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         return this._datarepo.removeDataSource(name);
     }
 
-    public syncData(name: string): PromiseLike<string[]> {
-        return this.syncDiff(name, this._datarepo.syncData(name), false);
+    public syncDataSource(name: string): PromiseLike<string[]> {
+        return this.syncDataDiff(name, this._datarepo.syncDataSource(name), false);
     }
 
-    public syncDiff(name: string, diff: any /* deep-diff's IDiff */, apply: boolean = true): PromiseLike<string[]> {
+    public syncDataDiff(name: string, diff: any /* deep-diff's IDiff */, apply: boolean = true): PromiseLike<string[]> {
+        debug(diff);
+
         if (!diff) {
             return Promise.resolve([]);
         }
@@ -79,7 +81,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                 );
 
                 if (apply) {
-                    this._datarepo.applyDataDiffs(name, diff_);
+                    this._datarepo.syncDataDiff(name, diff_);
 
                     debug(this._datarepo.currentlySynced(name));
                 }
@@ -90,7 +92,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         super._onClientConnect(socket);
 
         socket
-            .on(API.Events.WorldSyncDiff, ({ name, diff }, cb) =>
-                Endpoint._fulfillReceivedEvent(this.syncDiff(name, diff), cb));
+            .on(API.Events.WorldSyncDataDiff, ({ name, diff }, cb) =>
+                Endpoint._fulfillReceivedEvent(this.syncDataDiff(name, diff), cb));
     }
 }
