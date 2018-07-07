@@ -83,7 +83,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                         resolve(reply);
                     },
                 );
-            })).tap(ids => this._broadcastNotifyEvent(API.Events.WorldSyncDataDiff, { name, ids }, socket));
+            })).tap(ids => this._broadcastNotifyEvent(API.Events.WorldSyncDataDiff, { name, diff }, socket));
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
