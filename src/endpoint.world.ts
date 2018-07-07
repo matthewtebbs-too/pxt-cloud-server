@@ -45,14 +45,16 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     public syncDataSource(name: string): PromiseLike<string[]> {
-        return this.syncDataDiff(name, this._datarepo.syncDataSource(name), false);
+        const diff_ = this._datarepo.syncDataSource(name);
+
+        return diff_ ? this.syncDataDiff(name, diff_, false) : Promise.resolve([]);
     }
 
-    public syncDataDiff(name: string, diff: any /* deep-diff's IDiff */, apply: boolean = true): PromiseLike<string[]> {
-        return diff ? Promise.mapSeries(
-            Array.isArray(diff) ? diff : [diff],
+    public syncDataDiff(name: string, diff_: API.DataDiff[], apply: boolean = true): PromiseLike<string[]> {
+        return Promise.mapSeries(
+            diff_,
 
-            diff_ => new Promise((resolve, reject) => {
+            d => new Promise((resolve, reject) => {
                 const datakey = WorldDBKeys.data(name);
 
                 this.redisClient.xadd(
@@ -62,7 +64,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
                     'diff',
 
-                    JSON.stringify(diff_),
+                    d.toString(),
 
                     (error, reply: string) => {
                         if (error) {
@@ -70,14 +72,14 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                             return;
                         }
 
+                        if (apply) {
+                            this._datarepo.syncDataDiff(name, [d]);
+                        }
+
                         resolve(reply);
                     },
                 );
-
-                if (apply) {
-                    this._datarepo.syncDataDiff(name, diff_);
-                }
-            })) : Promise.resolve([]);
+            }));
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
