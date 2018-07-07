@@ -30,34 +30,33 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         super(endpoints, redisClient, socketServer, 'users');
     }
 
-    public selfInfo(socket?: SocketIO.Socket): PromiseLike<API.UserData> {
-        return new Promise((resolve, reject) => {
-            const userId = Endpoint.userId(socket);
-            const userkey = UsersDBKeys.user(userId);
+    public async selfInfo(socket?: SocketIO.Socket) {
+        const userId = Endpoint.userId(socket);
+        const userkey = UsersDBKeys.user(userId);
 
+        return await new Promise<API.UserData>((resolve, reject) => {
             this.redisClient.hgetall(
                 userkey,
 
                 (error, reply) => {
-                    if (error) {
+                    if (!error) {
+                        resolve({ /* sanitize data */
+                            name: reply && reply.name ? reply.name : '',
+
+                            id: userId,
+                        });
+                    } else {
                         reject(error);
-                        return;
                     }
-
-                    resolve({ /* sanitize data */
-                        name: reply && reply.name ? reply.name : '',
-
-                        id: userId,
-                    });
                 });
         });
     }
 
-    public addSelf(user: API.UserData, socket?: SocketIO.Socket): PromiseLike<boolean> {
-        return new Promise((resolve, reject) => {
-            const userId = Endpoint.userId(socket);
-            const userkey = UsersDBKeys.user(userId);
+    public async addSelf(user: API.UserData, socket?: SocketIO.Socket) {
+        const userId = Endpoint.userId(socket);
+        const userkey = UsersDBKeys.user(userId);
 
+        const existed = await new Promise<boolean>((resolve, reject) => {
             const multi = this.redisClient.multi()
                 .exists(userkey)
                 .hmset(userkey, { /* sanitize data */
@@ -66,45 +65,43 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
 
             multi.exec(
                 (error, reply) => {
-                    if (error) {
+                    if (!error) {
+                        resolve(!!reply && reply[0] /* reply from exists */);
+                    } else {
                         reject(error);
-                        return;
                     }
-
-                    const existed = !!reply && reply[0] as boolean; /* reply from exists */
-
-                    if (!existed) {
-                        this._broadcastNotifyEvent(API.Events.UserJoined, userId, user, socket);
-                    }
-
-                    resolve(existed);
                 });
         });
+
+        if (!existed) {
+            this._broadcastNotifyEvent(API.Events.UserJoined, userId, user, socket);
+        }
+
+        return existed;
     }
 
-    public removeSelf(socket?: SocketIO.Socket): PromiseLike<boolean> {
-        return new Promise((resolve, reject) => {
-            const userId = Endpoint.userId(socket);
-            const userkey = UsersDBKeys.user(userId);
+    public async removeSelf(socket?: SocketIO.Socket) {
+        const userId = Endpoint.userId(socket);
+        const userkey = UsersDBKeys.user(userId);
 
+        const existed = await new Promise<boolean>((resolve, reject) => {
             this.redisClient.del(
                 userkey,
 
                 (error, reply) => {
-                    if (error) {
+                    if (!error) {
+                        resolve(!!reply /* reply from del */);
+                    } else {
                         reject(error);
-                        return;
                     }
-
-                    const existed = !!reply; /* reply from del */
-
-                    if (existed) {
-                        this._broadcastNotifyEvent(API.Events.UserLeft, userId, socket);
-                    }
-
-                    resolve(existed);
                 });
         });
+
+        if (existed) {
+            this._broadcastNotifyEvent(API.Events.UserLeft, userId, socket);
+        }
+
+        return existed;
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {

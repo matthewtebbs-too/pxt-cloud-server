@@ -30,16 +30,14 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
         super(endpoints, redisClient, socketServer, 'chat');
     }
 
-    public newMessage(msg: string | API.MessageData, socket?: SocketIO.Socket): PromiseLike<void> {
-        return (this.endpoints.users! as UsersEndpoint)
-            .selfInfo(socket)
-            .then(user => {
-                if (typeof msg !== 'object') {
-                    msg = { text: msg };
-                }
+    public async newMessage(msg: string | API.MessageData, socket?: SocketIO.Socket) {
+        const user = await (this.endpoints.users! as UsersEndpoint).selfInfo(socket);
 
-                this._broadcastNotifyEvent(API.Events.ChatNewMessage, { ...msg, name: user.name }, socket);
-            });
+        if (typeof msg !== 'object') {
+            msg = { text: msg };
+        }
+
+        this._broadcastNotifyEvent(API.Events.ChatNewMessage, { ...msg, name: user.name }, socket);
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {

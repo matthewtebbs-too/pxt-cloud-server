@@ -5,8 +5,6 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-import * as Promise from 'bluebird';
-
 import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 
@@ -48,17 +46,17 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         return this._datarepo.currentlySynced(name);
     }
 
-    public syncDataSource(name: string): PromiseLike<string[]> {
+    public async syncDataSource(name: string) {
         const diff = this._datarepo.syncDataSource(name);
 
-        return diff ? this.syncDataDiff(name, diff) : Promise.resolve([]);
+        return diff ? await this.syncDataDiff(name, diff) : [];
     }
 
-    public syncDataDiff(name: string, diff: API.DataDiff[], apply?: boolean, socket?: SocketIO.Socket): PromiseLike<string[]> {
-        return Promise.mapSeries(
-            diff,
+    public async syncDataDiff(name: string, diff: API.DataDiff[], apply?: boolean, socket?: SocketIO.Socket) {
+        const ids = [];
 
-            diff_ => new Promise((resolve, reject) => {
+        for (const diff_ of diff) {
+            ids.push(await new Promise<string>((resolve, reject) => {
                 const datakey = WorldDBKeys.data(name);
 
                 this.redisClient.xadd(
@@ -71,19 +69,23 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                     diff_.toString(),
 
                     (error, reply: string) => {
-                        if (error) {
+                        if (!error) {
+                            if (apply) {
+                                this._datarepo.syncDataDiff(name, [diff_]);
+                            }
+
+                            resolve(reply);
+                        } else {
                             reject(error);
-                            return;
                         }
-
-                        if (apply) {
-                            this._datarepo.syncDataDiff(name, [diff_]);
-                        }
-
-                        resolve(reply);
                     },
                 );
-            })).tap(ids => this._broadcastNotifyEvent(API.Events.WorldSyncDataDiff, { name, diff }, socket));
+            }));
+        }
+
+        this._broadcastNotifyEvent(API.Events.WorldSyncDataDiff, { name, diff }, socket);
+
+        return ids;
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
