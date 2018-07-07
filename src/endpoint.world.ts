@@ -47,10 +47,10 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     public syncDataSource(name: string): PromiseLike<string[]> {
         const diff = this._datarepo.syncDataSource(name);
 
-        return diff ? this.syncDataDiff(name, diff, false) : Promise.resolve([]);
+        return diff ? this.syncDataDiff(name, diff) : Promise.resolve([]);
     }
 
-    public syncDataDiff(name: string, diff: API.DataDiff[], apply: boolean = true): PromiseLike<string[]> {
+    public syncDataDiff(name: string, diff: API.DataDiff[], apply?: boolean, socket?: SocketIO.Socket): PromiseLike<string[]> {
         return Promise.mapSeries(
             diff,
 
@@ -79,7 +79,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                         resolve(reply);
                     },
                 );
-            }));
+            })).tap(ids => this._broadcastNotifyEvent(API.Events.WorldSyncDataDiff, ids[ids.length - 1], socket));
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
@@ -87,6 +87,6 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
         socket
             .on(API.Events.WorldSyncDataDiff, ({ name, diff }, cb) =>
-                Endpoint._fulfillReceivedEvent(this.syncDataDiff(name, diff), cb));
+                Endpoint._fulfillReceivedEvent(this.syncDataDiff(name, diff, true, socket), cb));
     }
 }
