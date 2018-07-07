@@ -44,6 +44,10 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         return this._datarepo.removeDataSource(name);
     }
 
+    public currentlySynced(name: string): any {
+        return this._datarepo.currentlySynced(name);
+    }
+
     public syncDataSource(name: string): PromiseLike<string[]> {
         const diff = this._datarepo.syncDataSource(name);
 
@@ -79,7 +83,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                         resolve(reply);
                     },
                 );
-            })).tap(ids => this._broadcastNotifyEvent(API.Events.WorldSyncDataDiff, ids[ids.length - 1], socket));
+            })).tap(ids => this._broadcastNotifyEvent(API.Events.WorldSyncDataDiff, { name, ids }, socket));
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
