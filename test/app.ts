@@ -22,7 +22,7 @@ async function test(api: API.PublicAPI) {
 
     debug('start');
 
-    for (let index = 0; index < 1000; ) {
+    for (let index = 0; index < 1000; index++) {
         data.array.push(++index);
         data.length = index;
 
@@ -31,9 +31,9 @@ async function test(api: API.PublicAPI) {
         if (diff) {
             await api.world.syncDataDiff('test', diff);
         }
-
-        //debug(await api.world.currentlySynced('test'));
     }
+
+    //debug(await api.world.currentlySynced('test'));
 
     debug('end');
 }

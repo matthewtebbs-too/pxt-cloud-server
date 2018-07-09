@@ -19,11 +19,10 @@ const debug = require('debug')('pxt-cloud:endpoint:world');
 // tslint:disable-next-line:variable-name
 const WorldDBKeys = {
     data: (name: string) => `data:${name}`,
+    dataDiff: (name: string) => `diff:${name}`,
 };
 
 export class WorldEndpoint extends Endpoint implements API.WorldAPI {
-    protected static _maxPersistedDiffs = 60;  /* max 60 diffs */
-
     protected _debug = debug;
 
     private _datarepo = new API.DataRepo();
@@ -57,7 +56,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     public async syncDataDiff(name: string, diff: API.DataDiff[], socket?: SocketIO.Socket) {
-        await this._persistDataDiff(name, diff);
+        await this._persistDiff(name, diff);
 
         this._notifyAndBroadcastEvent(API.Events.WorldSyncDataDiff, { name, diff }, socket);
     }
@@ -70,81 +69,65 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                 Endpoint._fulfillReceivedEvent(this.syncDataDiff(name, diff, socket), cb));
     }
 
-    protected async _persistDataDiff(name: string, diff: API.DataDiff[]) {
-        const datakey = WorldDBKeys.data(name);
-
-        const count = await new Promise((resolve, reject) => {
-            this.redisClient.llen(
-                datakey,
-
-                (error, reply) => {
-                    if (!error) {
-                        resolve(reply);
-                    } else {
-                        reject(error);
-                    }
-                },
-            );
-        });
-
-        if (count >= WorldEndpoint._maxPersistedDiffs) {
-            const diffPersisted = API.DataRepo.calcDataDiff({}, await this._persistedData(name));
-
-            await new Promise((resolve, reject) => {
-                this.redisClient.del(
-                    datakey,
-
-                    error => {
-                        if (!error) {
-                            resolve();
-                        } else {
-                            reject(error);
-                        }
-                    },
-                );
-            });
-
-            await this._persistDataDiff(name, diffPersisted);
-        }
-
-        diff.forEach(async diff_ =>
-            await new Promise((resolve, reject) => {
-                this.redisClient.rpush(
-                    datakey,
-
-                    diff_.toString('binary'),
-
-                    error => {
-                        if (!error) {
-                            resolve();
-                        } else {
-                            reject(error);
-                        }
-                    },
-                );
-            }),
-        );
+    protected async _persistDiff(name: string, diff: API.DataDiff[]) {
+        await this._persistData(name, API.DataRepo.applyDataDiff(await this._persistedData(name), diff));
     }
 
+    // protected async _persistDiff(name: string, diff: API.DataDiff[]) {
+    //     await new Promise((resolve, reject) => {
+    //         const datakey = WorldDBKeys.dataDiff(name);
+
+    //         this.redisClient.rpush(
+    //             datakey,
+
+    //             API.DataRepo.encode(diff) as any as string,
+
+    //             error => {
+    //                 if (!error) {
+    //                     resolve();
+    //                 } else {
+    //                     reject(error);
+    //                 }
+    //             },
+    //         );
+    //     });
+    // }
+
     protected async _persistedData(name: string) {
-        const diff = await new Promise<API.DataDiff[]>((resolve, reject) => {
+        return await new Promise((resolve, reject) => {
             const datakey = WorldDBKeys.data(name);
 
-            this.redisClient.lrange(
+            this.redisClient.get(
                 datakey,
-
-                0, -1,
 
                 (error, reply) => {
                     if (!error) {
-                        resolve(reply.map(diff_ => Buffer.from(diff_, 'binary')));
+                        resolve(reply ? API.DataRepo.decode(Buffer.from(reply, 'binary')) : {});
                     } else {
                         reject(error);
                     }
                 },
             );
         });
+    }
 
-        return API.DataRepo.applyDataDiff({}, diff);
+    protected async _persistData(name: string, data: object) {
+        return await new Promise((resolve, reject) => {
+            const datakey = WorldDBKeys.data(name);
+
+            this.redisClient.set(
+                datakey,
+
+                API.DataRepo.encode(data).toString('binary'),
+
+                error => {
+                    if (!error) {
+                        resolve();
+                    } else {
+                        reject(error);
+                    }
+                },
+            );
+        });
     }
 }
