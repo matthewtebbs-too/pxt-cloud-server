@@ -20,7 +20,7 @@ const UsersDBKeys = {
 };
 
 export class UsersEndpoint extends Endpoint implements API.UsersAPI {
-    protected _debug: any = debug;
+    protected _debug = debug;
 
     constructor(
         endpoints: Endpoints,
@@ -31,10 +31,10 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
     }
 
     public async selfInfo(socket?: SocketIO.Socket) {
-        const userId = Endpoint.userId(socket);
-        const userkey = UsersDBKeys.user(userId);
-
         return await new Promise<API.UserData>((resolve, reject) => {
+            const userId = Endpoint.userId(socket);
+            const userkey = UsersDBKeys.user(userId);
+
             this.redisClient.hgetall(
                 userkey,
 
@@ -54,9 +54,10 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
 
     public async addSelf(user: API.UserData, socket?: SocketIO.Socket) {
         const userId = Endpoint.userId(socket);
-        const userkey = UsersDBKeys.user(userId);
 
         const existed = await new Promise<boolean>((resolve, reject) => {
+            const userkey = UsersDBKeys.user(userId);
+
             const multi = this.redisClient.multi()
                 .exists(userkey)
                 .hmset(userkey, { /* sanitize data */
@@ -74,7 +75,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         });
 
         if (!existed) {
-            this._broadcastNotifyEvent(API.Events.UserJoined, userId, user, socket);
+            this._notifyAndBroadcastEvent(API.Events.UserJoined, userId, user, socket);
         }
 
         return existed;
@@ -82,15 +83,16 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
 
     public async removeSelf(socket?: SocketIO.Socket) {
         const userId = Endpoint.userId(socket);
-        const userkey = UsersDBKeys.user(userId);
 
         const existed = await new Promise<boolean>((resolve, reject) => {
+            const userkey = UsersDBKeys.user(userId);
+
             this.redisClient.del(
                 userkey,
 
                 (error, reply) => {
                     if (!error) {
-                        resolve(!!reply /* reply from del */);
+                        resolve(0 !== reply /* reply from del */);
                     } else {
                         reject(error);
                     }
@@ -98,7 +100,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         });
 
         if (existed) {
-            this._broadcastNotifyEvent(API.Events.UserLeft, userId, socket);
+            this._notifyAndBroadcastEvent(API.Events.UserLeft, userId, socket);
         }
 
         return existed;

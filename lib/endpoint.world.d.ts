@@ -3,13 +3,16 @@ import * as SocketIO from 'socket.io';
 import * as API from 'pxt-cloud-api';
 import { Endpoint, Endpoints } from './endpoint_';
 export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
+    protected static _maxPersistedDiffs: number;
     protected _debug: any;
     private _datarepo;
     constructor(endpoints: Endpoints, redisClient: Redis.RedisClient, socketServer: SocketIO.Server);
     addDataSource(name: string, source: API.DataSource): boolean;
     removeDataSource(name: string): boolean;
-    currentlySynced(name: string): any;
-    syncDataSource(name: string): Promise<string[]>;
-    syncDataDiff(name: string, diff: API.DataDiff[], apply?: boolean, socket?: SocketIO.Socket): Promise<string[]>;
+    currentlySynced(name: string): Promise<object | undefined>;
+    syncDataSource(name: string): Promise<void>;
+    syncDataDiff(name: string, diff: API.DataDiff[], socket?: SocketIO.Socket): Promise<void>;
     protected _onClientConnect(socket: SocketIO.Socket): void;
+    protected _persistDataDiff(name: string, diff: API.DataDiff[]): Promise<void>;
+    protected _persistedData(name: string): Promise<object>;
 }

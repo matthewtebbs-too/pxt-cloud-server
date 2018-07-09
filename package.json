@@ -27,7 +27,6 @@
     "http-shutdown": "^1.2.0",
     "pxt-cloud-api": "github:muddytummy/pxt-cloud-api",
     "redis": "^2.8.0",
-    "redis-commands": "github:muddytummy/redis-commands#beta",
     "socket.io": "^2.1.1"
   },
   "devDependencies": {

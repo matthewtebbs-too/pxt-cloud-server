@@ -20,7 +20,7 @@ const ChatDBKeys = {
 };
 
 export class ChatEndpoint extends Endpoint implements API.ChatAPI {
-    protected _debug: any = debug;
+    protected _debug = debug;
 
     constructor(
         endpoints: Endpoints,
@@ -33,11 +33,15 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
     public async newMessage(msg: string | API.MessageData, socket?: SocketIO.Socket) {
         const user = await (this.endpoints.users! as UsersEndpoint).selfInfo(socket);
 
-        if (typeof msg !== 'object') {
-            msg = { text: msg };
+        if (user) {
+            if (typeof msg !== 'object') {
+                msg = { text: msg };
+            }
+
+            this._notifyAndBroadcastEvent(API.Events.ChatNewMessage, { ...msg, name: user.name }, socket);
         }
 
-        this._broadcastNotifyEvent(API.Events.ChatNewMessage, { ...msg, name: user.name }, socket);
+        return !!user;
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
