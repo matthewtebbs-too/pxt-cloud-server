@@ -47,7 +47,12 @@ export class RedisClient extends EventEmitter {
         this.dispose();
 
         return new Promise((resolve, reject) => {
-            this._redis = new Redis.RedisClient({ host: host_, port: port_, retry_strategy: RedisClient._retrystrategy });
+            this._redis = new Redis.RedisClient({
+                host: host_,
+                port: port_,
+
+                retry_strategy: RedisClient._retrystrategy,
+            });
 
             initialized();
 
