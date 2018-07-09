@@ -112,7 +112,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     protected async _persistData(name: string, data: object) {
-        return await new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
             const datakey = WorldDBKeys.data(name);
 
             this.redisClient.set(

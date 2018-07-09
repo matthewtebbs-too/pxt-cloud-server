@@ -14,5 +14,5 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     protected _onClientConnect(socket: SocketIO.Socket): void;
     protected _persistDiff(name: string, diff: API.DataDiff[]): Promise<void>;
     protected _persistedData(name: string): Promise<{}>;
-    protected _persistData(name: string, data: object): Promise<{}>;
+    protected _persistData(name: string, data: object): Promise<void>;
 }
