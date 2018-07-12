@@ -38,17 +38,11 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
             this.redisClient.hgetall(
                 userkey,
 
-                (error, reply) => {
-                    if (!error) {
-                        resolve({ /* sanitize data */
-                            name: reply && reply.name ? reply.name : '',
+                Endpoint._promiseHandler((reply: any) => resolve({ /* sanitize data */
+                    name: reply && reply.name ? reply.name : '',
 
-                            id: userId,
-                        });
-                    } else {
-                        reject(error);
-                    }
-                });
+                    id: userId,
+                }), reject));
         });
     }
 
@@ -65,13 +59,8 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
                 });
 
             multi.exec(
-                (error, reply) => {
-                    if (!error) {
-                        resolve(!!reply && reply[0] /* reply from exists */);
-                    } else {
-                        reject(error);
-                    }
-                });
+                Endpoint._promiseHandler((reply: any) => resolve(!!reply && reply[0] /* reply from exists */), reject),
+            );
         });
 
         if (!existed) {
@@ -90,13 +79,8 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
             this.redisClient.del(
                 userkey,
 
-                (error, reply) => {
-                    if (!error) {
-                        resolve(0 !== reply /* reply from del */);
-                    } else {
-                        reject(error);
-                    }
-                });
+                Endpoint._promiseHandler((reply: any) => resolve(0 !== reply /* reply from del */), reject),
+            );
         });
 
         if (existed) {

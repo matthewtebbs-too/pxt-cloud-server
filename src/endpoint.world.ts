@@ -84,13 +84,13 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     protected async _clearDiff(name: string) {
         const datakey = WorldDBKeys.dataDiff(name);
 
-        return await new Promise<API.DataDiff[]>((resolve, reject) => {
-            this.redisClient.del(datakey, Endpoint._defaultPromiseHandler(resolve, reject));
+        await new Promise((resolve, reject) => {
+            this.redisClient.del(datakey, Endpoint._promiseHandler(resolve, reject));
         });
     }
 
     protected async _persistDiff(name: string, diff: API.DataDiff[]) {
-        const maxBatchQueue = 50;  /* 50 commands */
+        const maxBatchQueue = 50;  /* batch max 50 commands */
 
         const datakey = WorldDBKeys.dataDiff(name);
 
@@ -118,14 +118,14 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
                 0, -1,
 
-                Endpoint._bufferPromiseHandler(resolve, reject),
+                Endpoint._buffersPromiseHandler(resolve, reject),
             );
         });
     }
 
     protected async _persistedData(name: string) {
-        await new Promise((resolve, reject) =>
-            this._batchedDiffs.exec(Endpoint._defaultPromiseHandler(resolve, reject)),
+        await new Promise<any>((resolve, reject) =>
+            this._batchedDiffs.exec(Endpoint._promiseHandler(resolve, reject)),
         );
 
         return await new Promise((resolve, reject) => {
@@ -134,7 +134,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
             this.redisClient.get(
                 datakey,
 
-                Endpoint._bufferPromiseHandler((reply: any) => resolve(reply ? API.DataRepo.decode(reply) : {}), reject),
+                Endpoint._bufferPromiseHandler(reply => resolve(reply ? API.DataRepo.decode(reply) : {}), reject),
             );
         });
     }
@@ -148,7 +148,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
                 API.DataRepo.encode(data).toString('binary'),
 
-                Endpoint._defaultPromiseHandler(resolve, reject),
+                Endpoint._promiseHandler(resolve, reject),
             );
         });
     }

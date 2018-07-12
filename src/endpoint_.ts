@@ -39,26 +39,20 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         promise.then(value => cb(null, value), cb);
     }
 
-    protected static _defaultPromiseHandler(resolve: any, reject: any) {
-        return (error: any) => !error ? resolve() : reject(error);
+    protected static _promiseHandler<T>(resolve: (value?: T) => void, reject: (reason?: any) => void) {
+        return (error: any, reply: T) => !error ? resolve(reply) : reject(error);
     }
 
-    protected static _bufferPromiseHandler(resolve: any, reject: any) {
-        return (error: any, reply: string | string[]) => {
-            if (!error) {
-                if (reply) {
-                    if (Array.isArray(reply)) {
-                        resolve(reply.map(r => Buffer.from(r, 'binary')));
-                    } else {
-                        resolve(Buffer.from(reply, 'binary'));
-                    }
-                } else {
-                    resolve();
-                }
-            } else  {
-                reject(error);
-            }
-        };
+    protected static _bufferPromiseHandler(resolve: (value?: Buffer) => any, reject: any) {
+        return Endpoint._promiseHandler<string>(reply => {
+            reply ? resolve(Buffer.from(reply, 'binary')) : resolve();
+        }, reject);
+    }
+
+    protected static _buffersPromiseHandler(resolve: (value?: Buffer[]) => any, reject: any) {
+        return Endpoint._promiseHandler<string[]>(reply => {
+            reply ? resolve(reply.map(r => Buffer.from(r, 'binary'))) : resolve();
+        }, reject);
     }
 
     public readonly off = super.removeListener;

@@ -35,6 +35,8 @@ async function test(api: API.PublicAPI) {
 
     const current = await api.world.currentlySynced('test');
 
+    // debug (current);
+
     debug('end');
 }
 
