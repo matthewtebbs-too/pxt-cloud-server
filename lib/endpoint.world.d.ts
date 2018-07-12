@@ -5,6 +5,8 @@ import { Endpoint, Endpoints } from './endpoint_';
 export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     protected _debug: any;
     private _datarepo;
+    private _batchedDiffs;
+    private _batchedCount;
     constructor(endpoints: Endpoints, redisClient: Redis.RedisClient, socketServer: SocketIO.Server);
     addDataSource(name: string, source: API.DataSource): boolean;
     removeDataSource(name: string): boolean;

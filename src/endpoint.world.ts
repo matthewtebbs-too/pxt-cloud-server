@@ -26,6 +26,8 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     protected _debug = debug;
 
     private _datarepo = new API.DataRepo();
+    private _batchedDiffs: Redis.Multi;
+    private _batchedCount = 0;
 
     constructor(
         endpoints: Endpoints,
@@ -33,6 +35,8 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         socketServer: SocketIO.Server,
     ) {
         super(endpoints, redisClient, socketServer, 'world');
+
+        this._batchedDiffs = redisClient.batch();
     }
 
     public addDataSource(name: string, source: API.DataSource): boolean {
@@ -70,30 +74,16 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     protected async _persistDiff(name: string, diff: API.DataDiff[]) {
-        await this._persistData(name, API.DataRepo.applyDataDiff(await this._persistedData(name), diff));
+        const datakey = WorldDBKeys.dataDiff(name);
+
+        this._batchedDiffs.rpush(datakey, API.DataRepo.encode(diff).toString('binary'));
     }
 
-    // protected async _persistDiff(name: string, diff: API.DataDiff[]) {
-    //     await new Promise((resolve, reject) => {
-    //         const datakey = WorldDBKeys.dataDiff(name);
-
-    //         this.redisClient.rpush(
-    //             datakey,
-
-    //             API.DataRepo.encode(diff) as any as string,
-
-    //             error => {
-    //                 if (!error) {
-    //                     resolve();
-    //                 } else {
-    //                     reject(error);
-    //                 }
-    //             },
-    //         );
-    //     });
-    // }
-
     protected async _persistedData(name: string) {
+        await new Promise((resolve, reject) =>
+            this._batchedDiffs.exec(Endpoint._defaultPromiseHandler(resolve, reject)),
+        );
+
         return await new Promise((resolve, reject) => {
             const datakey = WorldDBKeys.data(name);
 
@@ -120,13 +110,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
                 API.DataRepo.encode(data).toString('binary'),
 
-                error => {
-                    if (!error) {
-                        resolve();
-                    } else {
-                        reject(error);
-                    }
-                },
+                Endpoint._defaultPromiseHandler(resolve, reject),
             );
         });
     }

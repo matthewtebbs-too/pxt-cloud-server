@@ -4,9 +4,13 @@
     Copyright (c) 2018 MuddyTummy Software LLC
 */
 
-import * as _ from 'redis';
+import Queue = require('double-ended-queue');
+import 'redis';
 
 declare module 'redis' {
+    /*
+        Redis 5.0 commands below require muddytummy/redis-commands package.
+    */
     export type StreamID = string | '-' | '+';
 
     export interface Commands<R> {
@@ -37,5 +41,9 @@ declare module 'redis' {
         XREVRANGE(key: string, stop: StreamID, start: StreamID, cb?: Callback<string[]>): R;
         xrevrange(key: string, stop: StreamID, start: StreamID, count: string, limit: number, cb?: Callback<string[]>): R;
         XREVRANGE(key: string, stop: StreamID, start: StreamID, count: string, limit: number, cb?: Callback<string[]>): R;
+    }
+
+    export interface Multi {
+        queue: Queue<any>;
     }
 }
