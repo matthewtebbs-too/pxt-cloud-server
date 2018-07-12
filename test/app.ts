@@ -33,7 +33,7 @@ async function test(api: API.PublicAPI) {
         }
     }
 
-    debug(await api.world.currentlySynced('test'));
+    const current = await api.world.currentlySynced('test');
 
     debug('end');
 }

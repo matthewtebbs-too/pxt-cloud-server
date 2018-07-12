@@ -43,6 +43,24 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         return (error: any) => !error ? resolve() : reject(error);
     }
 
+    protected static _bufferPromiseHandler(resolve: any, reject: any) {
+        return (error: any, reply: string | string[]) => {
+            if (!error) {
+                if (reply) {
+                    if (Array.isArray(reply)) {
+                        resolve(reply.map(r => Buffer.from(r, 'binary')));
+                    } else {
+                        resolve(Buffer.from(reply, 'binary'));
+                    }
+                } else {
+                    resolve();
+                }
+            } else  {
+                reject(error);
+            }
+        };
+    }
+
     public readonly off = super.removeListener;
 
     protected abstract _debug: any;

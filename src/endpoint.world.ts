@@ -48,7 +48,15 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     public async currentlySynced(name: string): Promise<object | undefined> {
-        return this._datarepo.currentlySynced(name) || await this._persistedData(name);
+        let current = this._datarepo.currentlySynced(name);
+
+        if (!current) {
+            await this._collapseDiff(name);
+
+            current = await this._persistedData(name);
+        }
+
+        return current;
     }
 
     public async syncDataSource(name: string) {
@@ -73,10 +81,46 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                 Endpoint._fulfillReceivedEvent(this.syncDataDiff(name, diff, socket), cb));
     }
 
-    protected async _persistDiff(name: string, diff: API.DataDiff[]) {
+    protected async _clearDiff(name: string) {
         const datakey = WorldDBKeys.dataDiff(name);
 
-        this._batchedDiffs.rpush(datakey, API.DataRepo.encode(diff).toString('binary'));
+        return await new Promise<API.DataDiff[]>((resolve, reject) => {
+            this.redisClient.del(datakey, Endpoint._defaultPromiseHandler(resolve, reject));
+        });
+    }
+
+    protected async _persistDiff(name: string, diff: API.DataDiff[]) {
+        const maxBatchQueue = 50;  /* 50 commands */
+
+        const datakey = WorldDBKeys.dataDiff(name);
+
+        diff.forEach(d => this._batchedDiffs.rpush(datakey, d.toString('binary')));
+
+        if (this._batchedDiffs.queue.length >= maxBatchQueue) {
+            await this._collapseDiff(name);
+        }
+    }
+
+    protected async _collapseDiff(name: string) {
+        const current = await this._persistedData(name);
+        const diff = await this._persistedDiff(name);
+
+        await this._persistData(name, API.DataRepo.applyDataDiff(current, diff));
+        await this._clearDiff(name);
+    }
+
+    protected async _persistedDiff(name: string) {
+        const datakey = WorldDBKeys.dataDiff(name);
+
+        return await new Promise<API.DataDiff[]>((resolve, reject) => {
+            this.redisClient.lrange(
+                datakey,
+
+                0, -1,
+
+                Endpoint._bufferPromiseHandler(resolve, reject),
+            );
+        });
     }
 
     protected async _persistedData(name: string) {
@@ -90,13 +134,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
             this.redisClient.get(
                 datakey,
 
-                (error, reply) => {
-                    if (!error) {
-                        resolve(reply ? API.DataRepo.decode(Buffer.from(reply, 'binary')) : {});
-                    } else {
-                        reject(error);
-                    }
-                },
+                Endpoint._bufferPromiseHandler((reply: any) => resolve(reply ? API.DataRepo.decode(reply) : {}), reject),
             );
         });
     }

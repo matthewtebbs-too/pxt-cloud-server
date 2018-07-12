@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 import * as API from 'pxt-cloud-api';
@@ -14,7 +15,10 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     syncDataSource(name: string): Promise<void>;
     syncDataDiff(name: string, diff: API.DataDiff[], socket?: SocketIO.Socket): Promise<void>;
     protected _onClientConnect(socket: SocketIO.Socket): void;
+    protected _clearDiff(name: string): Promise<Buffer[]>;
     protected _persistDiff(name: string, diff: API.DataDiff[]): Promise<void>;
+    protected _collapseDiff(name: string): Promise<void>;
+    protected _persistedDiff(name: string): Promise<Buffer[]>;
     protected _persistedData(name: string): Promise<{}>;
     protected _persistData(name: string, data: object): Promise<void>;
 }
