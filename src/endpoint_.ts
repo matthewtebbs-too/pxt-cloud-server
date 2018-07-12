@@ -39,6 +39,10 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         promise.then(value => cb(null, value), cb);
     }
 
+    protected static _defaultPromiseHandler(resolve: any, reject: any) {
+        return (error: any) => !error ? resolve() : reject(error);
+    }
+
     public readonly off = super.removeListener;
 
     protected abstract _debug: any;

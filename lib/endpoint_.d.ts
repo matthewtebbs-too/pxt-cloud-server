@@ -9,6 +9,7 @@ export declare abstract class Endpoint extends EventEmitter implements API.Commo
     static connectId(socket?: SocketIO.Socket): string;
     protected static _extractSocketFromArgs(args: any[]): [any[], any];
     protected static _fulfillReceivedEvent<T>(promise: PromiseLike<T>, cb: Callback<T>): void;
+    protected static _defaultPromiseHandler(resolve: any, reject: any): (error: any) => any;
     readonly off: (event: string | symbol, listener: (...args: any[]) => void) => this;
     protected abstract _debug: any;
     readonly isConnected: boolean;
