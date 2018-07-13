@@ -38,7 +38,7 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
                 msg = { text: msg };
             }
 
-            this._notifyAndBroadcastEvent(API.Events.ChatNewMessage, { ...msg, name: user.name }, socket);
+            await this._notifyEvent(API.Events.ChatNewMessage, { ...msg, name: user.name }, socket);
         }
 
         return !!user;

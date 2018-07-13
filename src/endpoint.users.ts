@@ -64,7 +64,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         });
 
         if (!existed) {
-            this._notifyAndBroadcastEvent(API.Events.UserJoined, userId, user, socket);
+            await this._notifyEvent(API.Events.UserJoined, userId, user, socket);
         }
 
         return existed;
@@ -84,7 +84,7 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         });
 
         if (existed) {
-            this._notifyAndBroadcastEvent(API.Events.UserLeft, userId, socket);
+            await this._notifyEvent(API.Events.UserLeft, userId, socket);
         }
 
         return existed;

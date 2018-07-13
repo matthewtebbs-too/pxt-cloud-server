@@ -108,22 +108,32 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         this._socketNamespace = null;
     }
 
-    protected _notifyEvent(event: string, ...args: any[]) {
-        this.emit(event, ...args);
+    protected async _initializeClient(socket?: SocketIO.Socket) {
+        return true;
     }
 
-    protected _notifyAndBroadcastEvent(event: string, ...args_: any[]) {
+    protected async _ensureInitializedClient(socket?: SocketIO.Socket) {
+        if (!socket || !socket.connected || (socket as any).initialized) {
+            return;
+        }
+
+        (socket as any).initialized = await this._initializeClient(socket);
+    }
+
+    protected async _notifyEvent(event: string, ...args_: any[]) {
         const [ args, socket ] = Endpoint._extractSocketFromArgs(args_);
 
-        this._notifyEvent(event, args);
+        this.emit(event, ...args);
 
         if (socket) {
+            await this._ensureInitializedClient(socket);
+
             socket.broadcast.emit(event, ...args);
         }
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
-        /* do nothing */
+        setTimeout(async () => await this._initializeClient(socket));
     }
 
     protected _onClientDisconnect(socket: SocketIO.Socket) {

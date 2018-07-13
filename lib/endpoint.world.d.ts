@@ -14,11 +14,16 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     currentlySynced(name: string): Promise<object | undefined>;
     syncDataSource(name: string): Promise<void>;
     syncDataDiff(name: string, diff: API.DataDiff[], socket?: SocketIO.Socket): Promise<void>;
+    protected _initializeClient(socket?: SocketIO.Socket): Promise<boolean>;
     protected _onClientConnect(socket: SocketIO.Socket): void;
     protected _clearDiff(name: string): Promise<void>;
     protected _persistDiff(name: string, diff: API.DataDiff[]): Promise<void>;
     protected _collapseDiff(name: string): Promise<void>;
     protected _persistedDiff(name: string): Promise<Buffer[]>;
+    protected _allPersistedData(): Promise<{
+        name: string;
+        data: {};
+    }[]>;
     protected _persistedData(name: string): Promise<{}>;
     protected _persistData(name: string, data: object): Promise<void>;
 }
