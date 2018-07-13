@@ -23,6 +23,8 @@ import { UsersEndpoint } from './endpoint.users';
 import { WorldEndpoint } from './endpoint.world';
 import { Endpoint, Endpoints } from './endpoint_';
 
+export * from './server.config';
+
 const debug = require('debug')('pxt-cloud:server');
 
 interface EndpointConstructor {
