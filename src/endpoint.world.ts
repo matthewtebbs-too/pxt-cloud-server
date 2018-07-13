@@ -48,7 +48,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     public async currentlySynced(name: string): Promise<object | undefined> {
-        let current = this._datarepo.currentlySynced(name);
+        let current = this._datarepo.getData(name);
 
         if (!current) {
             await this._collapseDiff(name);
