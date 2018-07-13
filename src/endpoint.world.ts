@@ -78,7 +78,8 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
         if (success) {
             if (socket) {
-                (await this._allPersistedData()).forEach(result => success = success && socket.emit(API.Events.WorldSyncData, result));
+                (await this._allPersistedData())
+                    .forEach(({ name, data }) => success = success && socket.emit(API.Events.WorldSyncData, { name, data: API.DataRepo.encode(data)}));
             }
         }
 
