@@ -44,9 +44,16 @@ export class ChatEndpoint extends Endpoint implements API.ChatAPI {
         return !!user;
     }
 
-    protected _onClientConnect(socket: SocketIO.Socket) {
-        super._onClientConnect(socket);
+    protected async _initializeClient(socket?: SocketIO.Socket) {
+        const success = await super._initializeClient(socket);
 
-        socket.on(API.Events.ChatNewMessage, (msg, cb) => Endpoint._fulfillReceivedEvent(this.newMessage(msg, socket), cb));
+        if (success) {
+            if (socket) {
+                socket
+                    .on(API.Events.ChatNewMessage, (msg, cb) => Endpoint._fulfillReceivedEvent(this.newMessage(msg, socket), cb));
+            }
+        }
+
+        return success;
     }
 }

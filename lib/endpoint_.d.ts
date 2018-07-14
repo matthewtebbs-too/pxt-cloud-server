@@ -23,6 +23,7 @@ export declare abstract class Endpoint extends EventEmitter implements API.Commo
     constructor(endpoints: Endpoints, redisClient: Redis.RedisClient, socketServer: SocketIO.Server, nsp?: string);
     dispose(): void;
     protected _initializeClient(socket?: SocketIO.Socket): Promise<boolean>;
+    protected _isInitialized(socket?: SocketIO.Socket): any;
     protected _ensureInitializedClient(socket?: SocketIO.Socket): Promise<void>;
     protected _notifyEvent(event: string, ...args_: any[]): Promise<void>;
     protected _onClientConnect(socket: SocketIO.Socket): void;

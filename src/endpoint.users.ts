@@ -90,12 +90,18 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
         return existed;
     }
 
-    protected _onClientConnect(socket: SocketIO.Socket) {
-        super._onClientConnect(socket);
+    protected async _initializeClient(socket?: SocketIO.Socket) {
+        const success = await super._initializeClient(socket);
 
-        socket
-            .on(API.Events.UserSelfInfo, cb => Endpoint._fulfillReceivedEvent(this.selfInfo(socket), cb))
-            .on(API.Events.UserAddSelf, (user, cb) => Endpoint._fulfillReceivedEvent(this.addSelf(user, socket), cb))
-            .on(API.Events.UserRemoveSelf, cb => Endpoint._fulfillReceivedEvent(this.removeSelf(socket), cb));
+        if (success) {
+            if (socket) {
+                socket
+                    .on(API.Events.UserSelfInfo, cb => Endpoint._fulfillReceivedEvent(this.selfInfo(socket), cb))
+                    .on(API.Events.UserAddSelf, (user, cb) => Endpoint._fulfillReceivedEvent(this.addSelf(user, socket), cb))
+                    .on(API.Events.UserRemoveSelf, cb => Endpoint._fulfillReceivedEvent(this.removeSelf(socket), cb));
+            }
+        }
+
+        return success;
     }
 }

@@ -9,17 +9,15 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     private _batchedDiffs;
     private _batchedCount;
     constructor(endpoints: Endpoints, redisClient: Redis.RedisClient, socketServer: SocketIO.Server);
-    addDataSource(name: string, source: API.DataSource): boolean;
-    removeDataSource(name: string): boolean;
+    setDataSource(name: string, source: API.DataSource): boolean;
+    deleteDataSource(name: string): boolean;
     currentlySynced(name: string): Promise<object | undefined>;
     syncDataSource(name: string): Promise<void>;
     syncDataDiff(name: string, diff: API.DataDiff[], socket?: SocketIO.Socket): Promise<void>;
     protected _initializeClient(socket?: SocketIO.Socket): Promise<boolean>;
-    protected _onClientConnect(socket: SocketIO.Socket): void;
-    protected _clearDiff(name: string): Promise<void>;
-    protected _persistDiff(name: string, diff: API.DataDiff[]): Promise<void>;
-    protected _collapseDiff(name: string): Promise<void>;
     protected _persistedDiff(name: string): Promise<Buffer[]>;
+    protected _persistDiff(name: string, diff: API.DataDiff[]): Promise<void>;
+    protected _deleteAllPersistedDiff(name: string): Promise<void>;
     protected _allPersistedData(): Promise<{
         name: string;
         data: {};

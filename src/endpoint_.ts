@@ -112,12 +112,14 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         return true;
     }
 
-    protected async _ensureInitializedClient(socket?: SocketIO.Socket) {
-        if (!socket || !socket.connected || (socket as any).initialized) {
-            return;
-        }
+    protected _isInitialized(socket?: SocketIO.Socket) {
+        return !socket || !socket.connected || (socket as any).initialized;
+    }
 
-        (socket as any).initialized = await this._initializeClient(socket);
+    protected async _ensureInitializedClient(socket?: SocketIO.Socket) {
+        if (!this._isInitialized(socket)) {
+            (socket as any).initialized = await this._initializeClient(socket);
+        }
     }
 
     protected async _notifyEvent(event: string, ...args_: any[]) {
@@ -133,7 +135,7 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
-        setTimeout(async () => await this._initializeClient(socket));
+        setTimeout(async () => await this._ensureInitializedClient(socket));
     }
 
     protected _onClientDisconnect(socket: SocketIO.Socket) {
