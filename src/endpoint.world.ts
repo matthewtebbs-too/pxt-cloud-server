@@ -39,6 +39,10 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         super(endpoints, redisClient, socketServer, 'world');
     }
 
+    public async syncDataSources() {
+        return true;
+    }
+
     public setDataSource(name: string, source: API.DataSource): boolean {
         return this._datarepo.setDataSource(name, source);
     }

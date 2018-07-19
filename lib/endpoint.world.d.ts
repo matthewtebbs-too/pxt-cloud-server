@@ -9,6 +9,7 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     private _batchedDiffs;
     private _batchedCount;
     constructor(endpoints: Endpoints, redisClient: Redis.RedisClient, socketServer: SocketIO.Server);
+    syncDataSources(): Promise<boolean>;
     setDataSource(name: string, source: API.DataSource): boolean;
     deleteDataSource(name: string): boolean;
     pullAllData(socket?: SocketIO.Socket): Promise<API.NamedData[]>;
