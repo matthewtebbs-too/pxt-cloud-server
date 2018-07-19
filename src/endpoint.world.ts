@@ -138,7 +138,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     protected async _allPersistedData() {
         const datakeys = await new Promise<string[]>((resolve, reject) => this.redisClient.keys(WorldDBKeys.data('*'), Endpoint._promiseHandler(resolve, reject)));
 
-        const result = [];
+        const result: API.NamedData[] = [];
 
         for (const datakey of datakeys) {
             const name = WorldDBKeys.nameFromKey(datakey);

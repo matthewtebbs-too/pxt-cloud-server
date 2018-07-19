@@ -11,10 +11,7 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     constructor(endpoints: Endpoints, redisClient: Redis.RedisClient, socketServer: SocketIO.Server);
     setDataSource(name: string, source: API.DataSource): boolean;
     deleteDataSource(name: string): boolean;
-    pullAllData(socket?: SocketIO.Socket): Promise<{
-        name: string;
-        data: {};
-    }[]>;
+    pullAllData(socket?: SocketIO.Socket): Promise<API.NamedData[]>;
     pullData(name: string, socket?: SocketIO.Socket): Promise<{}>;
     pushAllData(socket?: SocketIO.Socket): Promise<void>;
     pushData(name: string, socket?: SocketIO.Socket): Promise<void>;
@@ -23,10 +20,7 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     protected _persistedDiff(name: string): Promise<Buffer[]>;
     protected _persistDiff(name: string, diff: API.DataDiff[]): Promise<void>;
     protected _deleteAllPersistedDiff(name: string): Promise<void>;
-    protected _allPersistedData(): Promise<{
-        name: string;
-        data: {};
-    }[]>;
+    protected _allPersistedData(): Promise<API.NamedData[]>;
     protected _persistedData(name: string): Promise<{}>;
     protected _persistData(name: string, data: object): Promise<void>;
 }
