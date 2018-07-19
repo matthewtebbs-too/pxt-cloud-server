@@ -11,9 +11,14 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     constructor(endpoints: Endpoints, redisClient: Redis.RedisClient, socketServer: SocketIO.Server);
     setDataSource(name: string, source: API.DataSource): boolean;
     deleteDataSource(name: string): boolean;
-    currentlySynced(name: string): Promise<object | undefined>;
-    syncDataSource(name: string): Promise<void>;
-    syncDataDiff(name: string, diff: API.DataDiff[], socket?: SocketIO.Socket): Promise<void>;
+    pullAllData(socket?: SocketIO.Socket): Promise<{
+        name: string;
+        data: {};
+    }[]>;
+    pullData(name: string, socket?: SocketIO.Socket): Promise<{}>;
+    pushAllData(socket?: SocketIO.Socket): Promise<void>;
+    pushData(name: string, socket?: SocketIO.Socket): Promise<void>;
+    pushDataDiff(name: string, diff: API.DataDiff[], socket?: SocketIO.Socket): Promise<void>;
     protected _initializeClient(socket?: SocketIO.Socket): Promise<boolean>;
     protected _persistedDiff(name: string): Promise<Buffer[]>;
     protected _persistDiff(name: string, diff: API.DataDiff[]): Promise<void>;

@@ -47,39 +47,57 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         return this._datarepo.deleteDataSource(name);
     }
 
-    public async currentlySynced(name: string): Promise<object | undefined> {
-        return this._datarepo.getData(name) || await this._persistedData(name);
+    public async pullAllData(socket?: SocketIO.Socket) {
+        return await this._allPersistedData();
     }
 
-    public async syncDataSource(name: string) {
+    public async pullData(name: string, socket?: SocketIO.Socket) {
+        return await this._persistedData(name);
+    }
+
+    public async pushAllData(socket?: SocketIO.Socket) {
+        this._datarepo.names.forEach(async (name: string) =>
+            await this.pushData(name, socket),
+        );
+    }
+
+    public async pushData(name: string, socket?: SocketIO.Socket) {
         const diff = this._datarepo.calcDataDiff(name);
         if (diff) {
-            await this.syncDataDiff(name, diff);
+            await this.pushDataDiff(name, diff, socket);
         }
     }
 
-    public async syncDataDiff(name: string, diff: API.DataDiff[], socket?: SocketIO.Socket) {
+    public async pushDataDiff(name: string, diff: API.DataDiff[], socket?: SocketIO.Socket) {
         await this._persistDiff(name, diff);
 
-        await this._notifyEvent(API.Events.WorldSyncDataDiff, { name, diff }, socket);
+        await this._notifyEvent(API.Events.WorldPushDataDiff, { name, diff }, socket);
     }
 
     protected async _initializeClient(socket?: SocketIO.Socket) {
-        let success = await super._initializeClient(socket);
-
-        if (success) {
-            if (socket) {
-                const alldata = await this._allPersistedData();
-
-                alldata.forEach(({ name, data }) => success = success && socket.emit(API.Events.WorldSyncData, { name, data: API.DataRepo.encode(data)}));
-            }
-        }
+        const success = await super._initializeClient(socket);
 
         if (success) {
             if (socket) {
                 socket
-                    .on(API.Events.WorldSyncDataDiff, ({ name, diff }, cb) =>
-                        Endpoint._fulfillReceivedEvent(this.syncDataDiff(name, diff, socket), cb));
+                    .on(API.Events.WorldPullAllData, cb =>
+                        Endpoint._fulfillReceivedEvent(this.pullAllData(socket), cb));
+
+                socket
+                    .on(API.Events.WorldPullData, (name, cb) =>
+                        Endpoint._fulfillReceivedEvent(this.pullData(name, socket), cb));
+
+                socket
+                    .on(API.Events.WorldPushAllData, cb =>
+                        Endpoint._fulfillReceivedEvent(this.pushAllData(socket), cb));
+
+                socket
+                    .on(API.Events.WorldPushData, (name, cb) =>
+                        Endpoint._fulfillReceivedEvent(this.pushData(name, socket), cb));
+
+                socket
+                    .on(API.Events.WorldPushDataDiff, ({ name, diff }, cb) =>
+                        Endpoint._fulfillReceivedEvent(this.pushDataDiff(name, diff, socket), cb));
             }
         }
 
