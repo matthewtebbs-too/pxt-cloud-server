@@ -146,6 +146,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
         if (encdiff.length > 0) {
             let current = encdata ? API.DataRepo.decode(encdata) : {};
+
             current = API.DataRepo.applyDataDiff(current, encdiff.map(d => API.DataRepo.decode(d)));
             encdata = API.DataRepo.encode(current) as Buffer;
 
@@ -190,8 +191,6 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     protected async _pushDataDiff(name: string, encdiff: Buffer[], socket?: SocketIO.Socket) {
-        debug(encdiff);
-
         const maxBatchQueue = 1;  /* batch max 50 commands */
 
         let multi = this._batchedDiffs[name];
