@@ -150,8 +150,6 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
             current = API.DataRepo.applyDataDiff(current, encdiff.map(d => API.DataRepo.decode(d)));
             encdata = API.DataRepo.encode(current) as Buffer;
 
-            debug(current);
-
             await this._pushData(name, encdata, socket);
 
             await this._deleteAllPushedDiff(name);
