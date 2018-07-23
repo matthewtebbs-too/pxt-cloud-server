@@ -43,13 +43,13 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         return (error: any, reply: T) => !error ? resolve(reply) : reject(error);
     }
 
-    protected static _bufferPromiseHandler(resolve: (value?: Buffer) => any, reject: any) {
+    protected static _binaryPromiseHandler(resolve: (value?: Buffer) => any, reject: any) {
         return Endpoint._promiseHandler<string>(reply => {
             reply ? resolve(Buffer.from(reply, 'binary')) : resolve();
         }, reject);
     }
 
-    protected static _buffersPromiseHandler(resolve: (value?: Buffer[]) => any, reject: any) {
+    protected static _binaryarrayPromiseHandler(resolve: (value?: Buffer[]) => any, reject: any) {
         return Endpoint._promiseHandler<string[]>(reply => {
             reply ? resolve(reply.map(r => Buffer.from(r, 'binary'))) : resolve();
         }, reject);

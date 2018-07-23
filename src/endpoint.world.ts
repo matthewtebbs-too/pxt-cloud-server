@@ -52,11 +52,13 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     public async pullAllData(socket?: SocketIO.Socket) {
-        return await this._allPersistedData();
+        const tencdata = await this._pullAllData(socket);
+
+        return tencdata.map(({ name, data /* encdata */}) => ({ name, data: API.DataRepo.decode(data) }));
     }
 
     public async pullData(name: string, socket?: SocketIO.Socket) {
-        return await this._persistedData(name);
+        return API.DataRepo.decode(await this._pullData(name, socket));
     }
 
     public async pushAllData(socket?: SocketIO.Socket) {
@@ -67,15 +69,16 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
     public async pushData(name: string, socket?: SocketIO.Socket) {
         const diff = this._datarepo.calcDataDiff(name);
+
         if (diff) {
             await this.pushDataDiff(name, diff, socket);
         }
     }
 
     public async pushDataDiff(name: string, diff: API.DataDiff[], socket?: SocketIO.Socket) {
-        await this._persistDiff(name, diff);
+        const encdiff = API.DataRepo.encodeArray(diff);
 
-        await this._notifyEvent(API.Events.WorldPushDataDiff, { name, diff }, socket);
+        await this._pushDataDiff(name, encdiff);
     }
 
     protected async _initializeClient(socket?: SocketIO.Socket) {
@@ -85,107 +88,128 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
             if (socket) {
                 socket
                     .on(API.Events.WorldPullAllData, cb =>
-                        Endpoint._fulfillReceivedEvent(this.pullAllData(socket), cb));
+                        Endpoint._fulfillReceivedEvent(this._pullAllData(socket), cb));
 
                 socket
                     .on(API.Events.WorldPullData, (name, cb) =>
-                        Endpoint._fulfillReceivedEvent(this.pullData(name, socket), cb));
+                        Endpoint._fulfillReceivedEvent(this._pullData(name, socket), cb));
 
                 socket
-                    .on(API.Events.WorldPushAllData, cb =>
-                        Endpoint._fulfillReceivedEvent(this.pushAllData(socket), cb));
+                    .on(API.Events.WorldPushAllData, (tencdata, cb) =>
+                        Endpoint._fulfillReceivedEvent(this._pushAllData(tencdata, socket), cb));
 
                 socket
-                    .on(API.Events.WorldPushData, (name, cb) =>
-                        Endpoint._fulfillReceivedEvent(this.pushData(name, socket), cb));
+                    .on(API.Events.WorldPushData, ({ name, encdata }, cb) =>
+                        Endpoint._fulfillReceivedEvent(this._pushData(name, encdata, socket), cb));
 
                 socket
-                    .on(API.Events.WorldPushDataDiff, ({ name, diff }, cb) =>
-                        Endpoint._fulfillReceivedEvent(this.pushDataDiff(name, diff, socket), cb));
+                    .on(API.Events.WorldPushDataDiff, ({ name, encdiff }, cb) =>
+                        Endpoint._fulfillReceivedEvent(this._pushDataDiff(name, encdiff, socket), cb));
             }
         }
 
         return success;
     }
 
-    protected async _persistedDiff(name: string) {
-        return await new Promise<API.DataDiff[]>((resolve, reject) =>
+    protected async _pullAllData(socket?: SocketIO.Socket) {
+        const datakeys = await new Promise<string[]>((resolve, reject) => {
+            return this.redisClient.keys(WorldDBKeys.data('*'), Endpoint._promiseHandler(resolve, reject));
+        });
+
+        const tencdata: Array<API.Tagged<Buffer>> = [];
+
+        for (const datakey of datakeys) {
+            const name = WorldDBKeys.nameFromKey(datakey);
+
+            tencdata.push({ name, data: await this._pullData(name) });
+        }
+
+        return tencdata;
+    }
+
+    protected async _pullData(name: string, socket?: SocketIO.Socket) {
+        const multi = this._batchedDiffs[name];
+
+        if (multi) {
+            await new Promise((resolve, reject) => multi.exec(Endpoint._promiseHandler(resolve, reject)));
+        }
+
+        let encdata = await new Promise<Buffer>((resolve, reject) =>
+            this.redisClient.get(
+                WorldDBKeys.data(name),
+
+                Endpoint._binaryPromiseHandler(resolve, reject),
+            ),
+        );
+
+        const encdiff = await this._pullDataDiff(name);
+
+        if (encdiff.length > 0) {
+            let current = encdata ? API.DataRepo.decode(encdata) : {};
+            current = API.DataRepo.applyDataDiff(current, encdiff.map(d => API.DataRepo.decode(d)));
+            encdata = API.DataRepo.encode(current) as Buffer;
+
+            debug(current);
+
+            await this._pushData(name, encdata, socket);
+
+            await this._deleteAllPushedDiff(name);
+        }
+
+        return encdata;
+    }
+
+    protected async _pullDataDiff(name: string, socket?: SocketIO.Socket) {
+        return await new Promise<Buffer[]>((resolve, reject) =>
             this.redisClient.lrange(
                 WorldDBKeys.dataDiff(name),
 
                 0, -1,
 
-                Endpoint._buffersPromiseHandler(resolve, reject),
+                Endpoint._binaryarrayPromiseHandler(resolve, reject),
             ),
         );
     }
 
-    protected async _persistDiff(name: string, diff: API.DataDiff[]) {
-        const maxBatchQueue = 4;  /* batch max 50 commands */
+    protected async _pushAllData(tencdata: Array<API.Tagged<Buffer>>, socket?: SocketIO.Socket) {
+        tencdata.forEach(async ({ name, data /* encdata */ }) =>
+            await this._pushData(name, data, socket),
+        );
+    }
+
+    protected async _pushData(name: string, encdata: Buffer, socket?: SocketIO.Socket) {
+        await new Promise((resolve, reject) =>
+            this.redisClient.set(
+                WorldDBKeys.data(name),
+
+                encdata.toString('binary'),
+
+                Endpoint._promiseHandler(resolve, reject),
+            ),
+        );
+    }
+
+    protected async _pushDataDiff(name: string, encdiff: Buffer[], socket?: SocketIO.Socket) {
+        debug(encdiff);
+
+        const maxBatchQueue = 1;  /* batch max 50 commands */
 
         let multi = this._batchedDiffs[name];
         if (!multi) {
             multi = this._batchedDiffs[name] = this.redisClient.batch();
         }
 
-        diff.forEach(d => multi.rpush(WorldDBKeys.dataDiff(name), d.toString('binary')));
+        encdiff.forEach(d => multi.rpush(WorldDBKeys.dataDiff(name), d.toString('binary')));
 
         if (multi.queue.length >= maxBatchQueue) {
-            /* ignore return */ await this._persistedData(name);
+            /* ignore return */ await this._pullData(name);
         }
+
+        await this._notifyEvent(API.Events.WorldPushDataDiff, { name, encdiff }, socket);
+
     }
 
-    protected async _deleteAllPersistedDiff(name: string) {
+    protected async _deleteAllPushedDiff(name: string) {
         await new Promise((resolve, reject) => this.redisClient.del(WorldDBKeys.dataDiff(name), Endpoint._promiseHandler(resolve, reject)));
-    }
-
-    protected async _allPersistedData() {
-        const datakeys = await new Promise<string[]>((resolve, reject) => this.redisClient.keys(WorldDBKeys.data('*'), Endpoint._promiseHandler(resolve, reject)));
-
-        const result: API.NamedData[] = [];
-
-        for (const datakey of datakeys) {
-            const name = WorldDBKeys.nameFromKey(datakey);
-
-            result.push({ name, data: await this._persistedData(name) });
-        }
-
-        return result;
-    }
-
-    protected async _persistedData(name: string) {
-        const multi = this._batchedDiffs[name];
-        if (multi) {
-            await new Promise((resolve, reject) => multi.exec(Endpoint._promiseHandler(resolve, reject)));
-        }
-
-        const current = await new Promise((resolve, reject) =>
-            this.redisClient.get(
-                WorldDBKeys.data(name),
-
-                Endpoint._bufferPromiseHandler(reply => resolve(reply ? API.DataRepo.decode(reply) : {}), reject),
-            ),
-        );
-
-        const diff = await this._persistedDiff(name);
-        if (diff.length > 0) {
-            await this._persistData(name, API.DataRepo.applyDataDiff(current, diff));
-
-            await this._deleteAllPersistedDiff(name);
-        }
-
-        return current;
-    }
-
-    protected async _persistData(name: string, data: object) {
-        await new Promise((resolve, reject) =>
-            this.redisClient.set(
-                WorldDBKeys.data(name),
-
-                API.DataRepo.encode(data).toString('binary'),
-
-                Endpoint._promiseHandler(resolve, reject),
-            ),
-        );
     }
 }

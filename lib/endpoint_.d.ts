@@ -10,8 +10,8 @@ export declare abstract class Endpoint extends EventEmitter implements API.Commo
     protected static _extractSocketFromArgs(args: any[]): [any[], any];
     protected static _fulfillReceivedEvent<T>(promise: PromiseLike<T>, cb: Callback<T>): void;
     protected static _promiseHandler<T>(resolve: (value?: T) => void, reject: (reason?: any) => void): (error: any, reply: T) => void;
-    protected static _bufferPromiseHandler(resolve: (value?: Buffer) => any, reject: any): (error: any, reply: string) => void;
-    protected static _buffersPromiseHandler(resolve: (value?: Buffer[]) => any, reject: any): (error: any, reply: string[]) => void;
+    protected static _binaryPromiseHandler(resolve: (value?: Buffer) => any, reject: any): (error: any, reply: string) => void;
+    protected static _binaryarrayPromiseHandler(resolve: (value?: Buffer[]) => any, reject: any): (error: any, reply: string[]) => void;
     readonly off: (event: string | symbol, listener: (...args: any[]) => void) => this;
     protected abstract _debug: any;
     readonly isConnected: boolean;

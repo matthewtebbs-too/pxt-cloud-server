@@ -12,16 +12,20 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     syncDataSources(): Promise<boolean>;
     setDataSource(name: string, source: API.DataSource): boolean;
     deleteDataSource(name: string): boolean;
-    pullAllData(socket?: SocketIO.Socket): Promise<API.NamedData[]>;
-    pullData(name: string, socket?: SocketIO.Socket): Promise<{}>;
+    pullAllData(socket?: SocketIO.Socket): Promise<{
+        name: string;
+        data: any;
+    }[]>;
+    pullData(name: string, socket?: SocketIO.Socket): Promise<any>;
     pushAllData(socket?: SocketIO.Socket): Promise<void>;
     pushData(name: string, socket?: SocketIO.Socket): Promise<void>;
     pushDataDiff(name: string, diff: API.DataDiff[], socket?: SocketIO.Socket): Promise<void>;
     protected _initializeClient(socket?: SocketIO.Socket): Promise<boolean>;
-    protected _persistedDiff(name: string): Promise<Buffer[]>;
-    protected _persistDiff(name: string, diff: API.DataDiff[]): Promise<void>;
-    protected _deleteAllPersistedDiff(name: string): Promise<void>;
-    protected _allPersistedData(): Promise<API.NamedData[]>;
-    protected _persistedData(name: string): Promise<{}>;
-    protected _persistData(name: string, data: object): Promise<void>;
+    protected _pullAllData(socket?: SocketIO.Socket): Promise<API.Tagged<Buffer>[]>;
+    protected _pullData(name: string, socket?: SocketIO.Socket): Promise<Buffer>;
+    protected _pullDataDiff(name: string, socket?: SocketIO.Socket): Promise<Buffer[]>;
+    protected _pushAllData(tencdata: Array<API.Tagged<Buffer>>, socket?: SocketIO.Socket): Promise<void>;
+    protected _pushData(name: string, encdata: Buffer, socket?: SocketIO.Socket): Promise<void>;
+    protected _pushDataDiff(name: string, encdiff: Buffer[], socket?: SocketIO.Socket): Promise<void>;
+    protected _deleteAllPushedDiff(name: string): Promise<void>;
 }
