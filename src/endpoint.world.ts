@@ -12,7 +12,7 @@ import * as SocketIO from 'socket.io';
 
 import * as API from 'pxt-cloud-api';
 
-import { Endpoint, Endpoints } from './endpoint_';
+import { Endpoint, EndpointDBKeys, Endpoints } from './endpoint_';
 
 const debug = require('debug')('pxt-cloud:endpoint:world');
 
@@ -144,7 +144,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
         const encdiff = await this._pullDataDiff(name);
 
-        if (encdiff.length > 0) {
+        if (encdiff && encdiff.length > 0) {
             let current = encdata ? API.DataRepo.decode(encdata) : {};
 
             current = API.DataRepo.applyDataDiff(current, encdiff.map(d => API.DataRepo.decode(d)));
@@ -160,12 +160,31 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
     protected async _pullDataDiff(name: string, socket?: SocketIO.Socket) {
         return await new Promise<Buffer[]>((resolve, reject) =>
-            this.redisClient.lrange(
+            this.redisClient.xrange(
                 WorldDBKeys.dataDiff(name),
 
-                0, -1,
+                '-', '+',
 
-                Endpoint._binaryarrayPromiseHandler(resolve, reject),
+                Endpoint._promiseHandler(reply => {
+                    if (reply && reply.length > 0) {
+                        const idFirst = reply[0][0];
+                        const idLast = reply[reply.length - 1][0];
+
+                        const encdiff: Buffer[] = [];
+
+                        reply.forEach((entry: Redis.StreamEntry) => {
+                            const ikvBlob = entry[1].findIndex(value => value === EndpointDBKeys.blob);
+
+                            if (-1 !== ikvBlob && ikvBlob < (entry[1].length - 1)) {
+                                encdiff.push(Buffer.from(entry[1][ikvBlob + 1], 'binary'));
+                            }
+                        });
+
+                        resolve(encdiff);
+                    } else {
+                        resolve();
+                    }
+                }, reject),
             ),
         );
     }
@@ -196,10 +215,12 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
             multi = this._batchedDiffs[name] = this.redisClient.batch();
         }
 
-        encdiff.forEach(d => multi.rpush(WorldDBKeys.dataDiff(name), d.toString('binary')));
+        encdiff.forEach(d => multi.xadd(WorldDBKeys.dataDiff(name), '*', EndpointDBKeys.blob, d.toString('binary'), 'fat', 'cat'));
 
         if (multi.queue.length >= maxBatchQueue) {
-            /* ignore return */ await this._pullData(name);
+            await new Promise((resolve, reject) => multi.exec(Endpoint._promiseHandler(resolve, reject)));
+
+            await this._pullData(name);
         }
 
         await this._notifyEvent(API.Events.WorldPushDataDiff, { name, encdiff }, socket);

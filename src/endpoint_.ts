@@ -12,6 +12,11 @@ import * as API from 'pxt-cloud-api';
 
 export type Callback<T> = (error: Error | null, reply?: T) => void;
 
+// tslint:disable-next-line:variable-name
+export const EndpointDBKeys = {
+    blob: 'blob',
+};
+
 export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
     public static userId = Endpoint.connectId;
 

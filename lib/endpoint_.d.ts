@@ -4,6 +4,9 @@ import * as Redis from 'redis';
 import * as SocketIO from 'socket.io';
 import * as API from 'pxt-cloud-api';
 export declare type Callback<T> = (error: Error | null, reply?: T) => void;
+export declare const EndpointDBKeys: {
+    blob: string;
+};
 export declare abstract class Endpoint extends EventEmitter implements API.CommonAPI {
     static userId: typeof Endpoint.connectId;
     static connectId(socket?: SocketIO.Socket): string;
