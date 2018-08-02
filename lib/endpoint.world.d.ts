@@ -4,6 +4,8 @@ import * as SocketIO from 'socket.io';
 import * as API from 'pxt-cloud-api';
 import { Endpoint, Endpoints } from './endpoint_';
 export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
+    static maxExecBatchedDiffs: number;
+    static factorStreamDiffs: number;
     protected _debug: any;
     private _datarepo;
     private _batchedDiffs;

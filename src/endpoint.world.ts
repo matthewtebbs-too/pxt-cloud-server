@@ -25,6 +25,9 @@ const WorldDBKeys = {
 };
 
 export class WorldEndpoint extends Endpoint implements API.WorldAPI {
+    public static maxExecBatchedDiffs = 25;  /* batch max 25 commands */
+    public static factorStreamDiffs = 3;     /* allow 'factor' times flush batched diffs before applied to data */
+
     protected _debug = debug;
 
     private _datarepo = new API.DataRepo();
@@ -208,19 +211,23 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     protected async _pushDataDiff(name: string, encdiff: Buffer[], socket?: SocketIO.Socket) {
-        const maxBatchQueue = 1;  /* batch max 50 commands */
-
         let multi = this._batchedDiffs[name];
         if (!multi) {
             multi = this._batchedDiffs[name] = this.redisClient.batch();
         }
 
-        encdiff.forEach(d => multi.xadd(WorldDBKeys.dataDiff(name), '*', EndpointDBKeys.blob, d.toString('binary'), 'fat', 'cat'));
+        const datadiffKey = WorldDBKeys.dataDiff(name);
 
-        if (multi.queue.length >= maxBatchQueue) {
+        encdiff.forEach(d => multi.xadd(datadiffKey, '*', EndpointDBKeys.blob, d.toString('binary'), 'fat', 'cat'));
+
+        if (multi.queue.length >= WorldEndpoint.maxExecBatchedDiffs) {
             await new Promise((resolve, reject) => multi.exec(Endpoint._promiseHandler(resolve, reject)));
 
-            await this._pullData(name);
+            const lenDiff = await new Promise((resolve, rejecT) => this.redisClient.xlen(datadiffKey));
+
+            if (lenDiff >= (WorldEndpoint.maxExecBatchedDiffs * WorldEndpoint.factorStreamDiffs)) {
+                /* ignore return value */ await this._pullData(name);
+            }
         }
 
         await this._notifyEvent(API.Events.WorldPushDataDiff, { name, encdiff }, socket);
