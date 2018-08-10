@@ -115,10 +115,11 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     protected async _pullAllData(socket?: SocketIO.Socket) {
-        const datakeys = await new Promise<string[]>((resolve, reject) => {
-            return this.redisClient.keys(WorldDBKeys.data('*'), Endpoint._promiseHandler(resolve, reject));
-        });
+        // const datakeys = await new Promise<string[]>((resolve, reject) => {
+        //     return this.redisClient.keys(WorldDBKeys.data('*'), Endpoint._promiseHandler(resolve, reject));
+        // });
 
+        const datakeys = ['hack:globals'];
         const tencdata: Array<API.Tagged<Buffer>> = [];
 
         for (const datakey of datakeys) {
