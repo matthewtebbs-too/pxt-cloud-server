@@ -33,7 +33,7 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
             if (undefined === _socket || (typeof _socket === 'object' && 'broadcast' in _socket)) {
                 socket = _socket;
 
-                args = args.slice(0, -1);
+                args.pop();
             }
         }
 

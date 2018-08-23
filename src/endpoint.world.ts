@@ -1,4 +1,3 @@
-
 /*
     MIT License
 
@@ -151,7 +150,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         if (encdiff && encdiff.length > 0) {
             let current = encdata ? API.DataRepo.decode(encdata) : {};
 
-            current = API.DataRepo.applyDataDiff(current, encdiff.map(d => API.DataRepo.decode(d)));
+            current = API.DataRepo.applyDataDiff(current, API.DataRepo.decode(encdiff));
             encdata = API.DataRepo.encode(current) as Buffer;
 
             await this._pushData(name, encdata, socket);
@@ -219,12 +218,12 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
         const datadiffKey = WorldDBKeys.dataDiff(name);
 
-        encdiff.forEach(d => multi.xadd(datadiffKey, '*', EndpointDBKeys.blob, d.toString('binary'), 'fat', 'cat'));
+        encdiff.forEach(d => multi.xadd(datadiffKey, '*', EndpointDBKeys.blob, d.toString('binary')));
 
         if (multi.queue.length >= WorldEndpoint.maxExecBatchedDiffs) {
             await new Promise((resolve, reject) => multi.exec(Endpoint._promiseHandler(resolve, reject)));
 
-            const lenDiff = await new Promise((resolve, rejecT) => this.redisClient.xlen(datadiffKey));
+            const lenDiff = await new Promise((resolve, reject) => this.redisClient.xlen(datadiffKey, Endpoint._promiseHandler(resolve, reject)));
 
             if (lenDiff >= (WorldEndpoint.maxExecBatchedDiffs * WorldEndpoint.factorStreamDiffs)) {
                 /* ignore return value */ await this._pullData(name);
@@ -232,7 +231,6 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         }
 
         await this._notifyEvent(API.Events.WorldPushDataDiff, { name, encdiff }, socket);
-
     }
 
     protected async _deleteAllPushedDiff(name: string) {
