@@ -20,9 +20,9 @@
   "homepage": "https://github.com/muddytummy/pxt-cloud-server#readme",
   "dependencies": {
     "@types/double-ended-queue": "^2.1.0",
-    "@types/node": "^8.10.24",
+    "@types/node": "^8.10.26",
     "@types/redis": "^2.8.6",
-    "@types/socket.io": "^1.4.36",
+    "@types/socket.io": "^1.4.38",
     "debug": "^3.1.0",
     "dotenv": "^5.0.1",
     "http-shutdown": "^1.2.0",
