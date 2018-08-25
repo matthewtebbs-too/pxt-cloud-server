@@ -82,6 +82,14 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         await this._pushDataDiff(name, encdiff);
     }
 
+    public async lockData(name: string, socket?: SocketIO.Socket) {
+        return await this._lockData(name, socket);
+    }
+
+    public async unlockData(name: string, socket?: SocketIO.Socket) {
+        return await this._unlockData(name, socket);
+    }
+
     protected async _initializeClient(socket?: SocketIO.Socket) {
         const success = await super._initializeClient(socket);
 
