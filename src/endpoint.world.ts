@@ -31,7 +31,6 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
     private _datarepo = new API.DataRepo();
     private _batchedDiffs: { [key: string]: Redis.Multi } = {};
-    private _batchedCount = 0;
 
     constructor(
         endpoints: Endpoints,
@@ -90,23 +89,25 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
             if (socket) {
                 socket
                     .on(API.Events.WorldPullAllData, cb =>
-                        Endpoint._fulfillReceivedEvent(this._pullAllData(socket), cb));
+                        Endpoint._fulfillReceivedEvent(this._pullAllData(socket), cb))
 
-                socket
                     .on(API.Events.WorldPullData, (name, cb) =>
-                        Endpoint._fulfillReceivedEvent(this._pullData(name, socket), cb));
+                        Endpoint._fulfillReceivedEvent(this._pullData(name, socket), cb))
 
-                socket
                     .on(API.Events.WorldPushAllData, (tencdata, cb) =>
-                        Endpoint._fulfillReceivedEvent(this._pushAllData(tencdata, socket), cb));
+                        Endpoint._fulfillReceivedEvent(this._pushAllData(tencdata, socket), cb))
 
-                socket
                     .on(API.Events.WorldPushData, ({ name, encdata }, cb) =>
-                        Endpoint._fulfillReceivedEvent(this._pushData(name, encdata, socket), cb));
+                        Endpoint._fulfillReceivedEvent(this._pushData(name, encdata, socket), cb))
 
-                socket
                     .on(API.Events.WorldPushDataDiff, ({ name, encdiff }, cb) =>
-                        Endpoint._fulfillReceivedEvent(this._pushDataDiff(name, encdiff, socket), cb));
+                        Endpoint._fulfillReceivedEvent(this._pushDataDiff(name, encdiff, socket), cb))
+
+                    .on(API.Events.WorldLockData, (name, cb) =>
+                        Endpoint._fulfillReceivedEvent(this._lockData(name, socket), cb))
+
+                    .on(API.Events.WorldUnlockData, (name, cb) =>
+                        Endpoint._fulfillReceivedEvent(this._unlockData(name, socket), cb));
             }
         }
 
@@ -235,5 +236,13 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
     protected async _deleteAllPushedDiff(name: string) {
         await new Promise((resolve, reject) => this.redisClient.del(WorldDBKeys.dataDiff(name), Endpoint._promiseHandler(resolve, reject)));
+    }
+
+    protected async _lockData(name: string, socket?: SocketIO.Socket) {
+        return !!this._resourceLock(WorldDBKeys.data(name));
+    }
+
+    protected async _unlockData(name: string, socket?: SocketIO.Socket) {
+        return !!this._resourceUnlock(WorldDBKeys.data(name));
     }
 }

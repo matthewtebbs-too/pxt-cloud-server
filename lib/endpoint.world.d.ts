@@ -9,7 +9,6 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     protected _debug: any;
     private _datarepo;
     private _batchedDiffs;
-    private _batchedCount;
     constructor(endpoints: Endpoints, redisClient: Redis.RedisClient, socketServer: SocketIO.Server);
     syncDataSources(): Promise<boolean>;
     setDataSource(name: string, source: API.DataSource): boolean;
@@ -30,4 +29,6 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
     protected _pushData(name: string, encdata: Buffer, socket?: SocketIO.Socket): Promise<void>;
     protected _pushDataDiff(name: string, encdiff: Buffer[], socket?: SocketIO.Socket): Promise<void>;
     protected _deleteAllPushedDiff(name: string): Promise<void>;
+    protected _lockData(name: string, socket?: SocketIO.Socket): Promise<boolean>;
+    protected _unlockData(name: string, socket?: SocketIO.Socket): Promise<boolean>;
 }

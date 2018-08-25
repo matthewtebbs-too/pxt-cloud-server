@@ -75,6 +75,7 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
     private _endpoints: Endpoints;
     private _redisClient: Redis.RedisClient;
     private _redlock: Redlock;
+    private _redlock_locks: { [name: string]: Redlock.Lock } = {};
 
     protected get endpoints() {
         return this._endpoints;
@@ -152,12 +153,22 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         let lock;
 
         try {
-            lock = await this._redlock.lock(name, ttl || 1000);
+            lock = this._redlock_locks[name] = await this._redlock.lock(name, ttl || 1000);
         } catch (error) {
             debug(error);
         }
 
         return lock;
+    }
+
+    protected async _resourceUnlock(name: string) {
+        const lock = this._redlock_locks[name];
+
+        if (lock) {
+            await lock.unlock();
+        }
+
+        return !!lock;
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {

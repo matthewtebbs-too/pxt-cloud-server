@@ -23,6 +23,7 @@ export declare abstract class Endpoint extends EventEmitter implements API.Commo
     private _endpoints;
     private _redisClient;
     private _redlock;
+    private _redlock_locks;
     protected readonly endpoints: Endpoints;
     protected readonly redisClient: Redis.RedisClient;
     protected readonly redlock: Redlock;
@@ -33,6 +34,7 @@ export declare abstract class Endpoint extends EventEmitter implements API.Commo
     protected _ensureInitializedClient(socket?: SocketIO.Socket): Promise<void>;
     protected _notifyEvent(event: string, ...args_: any[]): Promise<void>;
     protected _resourceLock(name: string, ttl?: number): Promise<Redlock.Lock | undefined>;
+    protected _resourceUnlock(name: string): Promise<boolean>;
     protected _onClientConnect(socket: SocketIO.Socket): void;
     protected _onClientDisconnect(socket: SocketIO.Socket): void;
 }
