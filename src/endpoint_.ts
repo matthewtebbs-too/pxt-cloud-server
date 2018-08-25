@@ -6,9 +6,12 @@
 
 import { EventEmitter } from 'events';
 import * as Redis from 'redis';
+import * as Redlock from 'redlock';
 import * as SocketIO from 'socket.io';
 
 import * as API from 'pxt-cloud-api';
+
+const debug = require('debug')('pxt-cloud:endpoint');
 
 export type Callback<T> = (error: Error | null, reply?: T) => void;
 
@@ -71,6 +74,7 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
     private _socketNamespace: SocketIO.Namespace | null = null;
     private _endpoints: Endpoints;
     private _redisClient: Redis.RedisClient;
+    private _redlock: Redlock;
 
     protected get endpoints() {
         return this._endpoints;
@@ -78,6 +82,10 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
 
     protected get redisClient() {
         return this._redisClient;
+    }
+
+    protected get redlock() {
+        return this._redlock;
     }
 
     constructor(
@@ -93,6 +101,7 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
 
         this._endpoints = endpoints;
         this._redisClient = redisClient;
+        this._redlock = new Redlock([redisClient]);
 
         socketNamespace.on('connect', (socket: SocketIO.Socket) => {
             this._debug(`${socket.id} client connected from ${socket.handshake.address}`);
@@ -137,6 +146,18 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
 
             socket.broadcast.emit(event, ...args);
         }
+    }
+
+    protected async _resourceLock(name: string, ttl?: number) {
+        let lock;
+
+        try {
+            lock = await this._redlock.lock(name, ttl || 1000);
+        } catch (error) {
+            debug(error);
+        }
+
+        return lock;
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {

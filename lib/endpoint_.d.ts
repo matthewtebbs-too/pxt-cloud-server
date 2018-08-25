@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import { EventEmitter } from 'events';
 import * as Redis from 'redis';
+import * as Redlock from 'redlock';
 import * as SocketIO from 'socket.io';
 import * as API from 'pxt-cloud-api';
 export declare type Callback<T> = (error: Error | null, reply?: T) => void;
@@ -21,14 +22,17 @@ export declare abstract class Endpoint extends EventEmitter implements API.Commo
     private _socketNamespace;
     private _endpoints;
     private _redisClient;
+    private _redlock;
     protected readonly endpoints: Endpoints;
     protected readonly redisClient: Redis.RedisClient;
+    protected readonly redlock: Redlock;
     constructor(endpoints: Endpoints, redisClient: Redis.RedisClient, socketServer: SocketIO.Server, nsp?: string);
     dispose(): void;
     protected _initializeClient(socket?: SocketIO.Socket): Promise<boolean>;
     protected _isInitialized(socket?: SocketIO.Socket): any;
     protected _ensureInitializedClient(socket?: SocketIO.Socket): Promise<void>;
     protected _notifyEvent(event: string, ...args_: any[]): Promise<void>;
+    protected _resourceLock(name: string, ttl?: number): Promise<Redlock.Lock | undefined>;
     protected _onClientConnect(socket: SocketIO.Socket): void;
     protected _onClientDisconnect(socket: SocketIO.Socket): void;
 }

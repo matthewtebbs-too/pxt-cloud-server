@@ -22,12 +22,14 @@
     "@types/double-ended-queue": "^2.1.0",
     "@types/node": "^8.10.28",
     "@types/redis": "^2.8.6",
+    "@types/redlock": "^3.0.2",
     "@types/socket.io": "^1.4.38",
     "debug": "^3.1.0",
     "dotenv": "^6.0.0",
     "http-shutdown": "^1.2.0",
     "pxt-cloud-api": "github:muddytummy/pxt-cloud-api",
     "redis": "^2.8.0",
+    "redlock": "^3.1.2",
     "socket.io": "^2.1.1"
   },
   "devDependencies": {
