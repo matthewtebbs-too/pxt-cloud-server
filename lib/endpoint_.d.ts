@@ -23,7 +23,7 @@ export declare abstract class Endpoint extends EventEmitter implements API.Commo
     private _endpoints;
     private _redisClient;
     private _redlock;
-    private _redlock_locks;
+    private _redlockLocks;
     protected readonly endpoints: Endpoints;
     protected readonly redisClient: Redis.RedisClient;
     protected readonly redlock: Redlock;
