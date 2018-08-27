@@ -247,10 +247,10 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     protected async _lockData(name: string, socket?: SocketIO.Socket) {
-        return !!this._resourceLock(WorldDBKeys.data(name));
+        return undefined !== await this._resourceLock(WorldDBKeys.data(name));
     }
 
     protected async _unlockData(name: string, socket?: SocketIO.Socket) {
-        return !!this._resourceUnlock(WorldDBKeys.data(name));
+        return undefined !== await this._resourceUnlock(WorldDBKeys.data(name));
     }
 }

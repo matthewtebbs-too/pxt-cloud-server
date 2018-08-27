@@ -54,7 +54,8 @@
     "clean": "gulp clean",
     "build": "gulp build",
     "bundle": "gulp bundle",
-    "start": "gulp",
-    "debug": "tsc -project debug/ && node --inspect-brk=5858 -r dotenv/config built.debug/debug.js"
+    "build.debug": "tsc -project debug/",
+    "start": "npm run build.debug && node -r dotenv/config built.debug/debug.js",
+    "debug": "npm run build.debug && node --inspect-brk=5858 -r dotenv/config built.debug/debug.js"
   }
 }

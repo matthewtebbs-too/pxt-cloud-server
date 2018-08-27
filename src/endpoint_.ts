@@ -155,7 +155,7 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         let lock;
 
         try {
-            lock = this._redlockLocks[name] = await this._redlock.lock(EndpointDBKeys.locks(name), ttl || 100000);
+            lock = this._redlockLocks[name] = await this._redlock.lock(EndpointDBKeys.locks(name), ttl || 1000);
         } catch (error) {
             debug(error);
         }
