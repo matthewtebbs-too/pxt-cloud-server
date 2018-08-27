@@ -47,11 +47,10 @@ var rollup = require('rollup-stream');
 gulp.task('bundle', function () {
     var result = rollup('rollup.config.js')
         .pipe(source('index.js'))
-        .pipe(buffer())
-        .pipe(gulp.dest(LIB));
+        .pipe(buffer());
 
     return merge([
-        result,
+        result.pipe(gulp.dest(LIB)),
         gulp.src([BUILT_TYPINGS.concat('**/*.d.ts')]).pipe(gulp.dest(LIB))
     ]);
 });
