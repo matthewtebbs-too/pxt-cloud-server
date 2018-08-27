@@ -11,7 +11,7 @@ var SRC = _SRC.concat('/');
 
 var _BUILT = './built';
 var BUILT = _BUILT.concat('/');
-var BUILT_TEST = _BUILT.concat('.test/');
+var BUILT_TEST = _BUILT.concat('.debug/');
 var BUILT_TYPINGS = _BUILT.concat('/typings/');
 
 var DST = './dist/';

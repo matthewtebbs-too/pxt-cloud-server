@@ -78,8 +78,8 @@ class Server {
 
         return new Promise((resolve, reject) => {
             const options = {
-                cert: FS.readFileSync('./test/keys/localhost.crt'), /* TODO$: use CA issued certificate */
-                key: FS.readFileSync('./test/keys/localhost.key'),
+                cert: FS.readFileSync('./keys/localhost.crt'), /* TODO$: use CA issued certificate */
+                key: FS.readFileSync('./keys/localhost.key'),
                 rejectUnauthorized: false,
                 requestCert: false,
             };

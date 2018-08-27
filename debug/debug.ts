@@ -6,7 +6,7 @@
 
 import * as API from 'pxt-cloud-api';
 
-import * as PxtCloudServer from '..';
+import * as PxtCloudServer from '../lib';
 
 const debug = require('debug')('pxt-cloud:server:test');
 

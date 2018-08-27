@@ -2,6 +2,6 @@
   "extends": "../tsconfig.base.json",
   
   "compilerOptions": {
-    "outDir": "../built.test",
+    "outDir": "../built.debug",
   },
 }

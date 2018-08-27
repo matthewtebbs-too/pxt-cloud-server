@@ -55,6 +55,6 @@
     "build": "gulp build",
     "bundle": "gulp bundle",
     "start": "gulp",
-    "test": "tsc -project test/ && node --inspect-brk -r dotenv/config built.test/app.js"
+    "debug": "tsc -project debug/ && node -r dotenv/config built.debug/debug.js"
   }
 }
