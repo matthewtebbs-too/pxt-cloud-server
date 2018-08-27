@@ -55,6 +55,6 @@
     "build": "gulp build",
     "bundle": "gulp bundle",
     "start": "gulp",
-    "debug": "tsc -project debug/ && node -r dotenv/config built.debug/debug.js"
+    "debug": "tsc -project debug/ && node --inspect-brk=5858 -r dotenv/config built.debug/debug.js"
   }
 }
