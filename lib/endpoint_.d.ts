@@ -6,6 +6,7 @@ import * as SocketIO from 'socket.io';
 import * as API from 'pxt-cloud-api';
 export declare type Callback<T> = (error: Error | null, reply?: T) => void;
 export declare const EndpointDBKeys: {
+    locks: (name: string) => string;
     blob: string;
 };
 export declare abstract class Endpoint extends EventEmitter implements API.CommonAPI {
@@ -34,7 +35,7 @@ export declare abstract class Endpoint extends EventEmitter implements API.Commo
     protected _ensureInitializedClient(socket?: SocketIO.Socket): Promise<void>;
     protected _notifyEvent(event: string, ...args_: any[]): Promise<void>;
     protected _resourceLock(name: string, ttl?: number): Promise<Redlock.Lock | undefined>;
-    protected _resourceUnlock(name: string): Promise<boolean>;
+    protected _resourceUnlock(name: string): Promise<Redlock.Lock>;
     protected _onClientConnect(socket: SocketIO.Socket): void;
     protected _onClientDisconnect(socket: SocketIO.Socket): void;
 }

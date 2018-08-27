@@ -17,6 +17,8 @@ export type Callback<T> = (error: Error | null, reply?: T) => void;
 
 // tslint:disable-next-line:variable-name
 export const EndpointDBKeys = {
+    locks: (name: string) => `locks:${name}`,
+
     blob: 'blob',
 };
 
@@ -153,7 +155,7 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         let lock;
 
         try {
-            lock = this._redlockLocks[name] = await this._redlock.lock(name, ttl || 1000);
+            lock = this._redlockLocks[name] = await this._redlock.lock(EndpointDBKeys.locks(name), ttl || 100000);
         } catch (error) {
             debug(error);
         }
@@ -170,7 +172,7 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
             delete this._redlockLocks[name];
         }
 
-        return !!lock;
+        return lock;
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
