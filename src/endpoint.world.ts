@@ -179,9 +179,6 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
                 Endpoint._promiseHandler(reply => {
                     if (reply && reply.length > 0) {
-                        const idFirst = reply[0][0];
-                        const idLast = reply[reply.length - 1][0];
-
                         const encdiff: Buffer[] = [];
 
                         reply.forEach((entry: Redis.StreamEntry) => {
