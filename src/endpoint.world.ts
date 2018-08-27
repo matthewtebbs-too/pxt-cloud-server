@@ -71,15 +71,13 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     public async pushData(name: string, socket?: SocketIO.Socket) {
         const diff = this._datarepo.calcDataDiff(name);
 
-        if (diff) {
-            await this.pushDataDiff(name, diff, socket);
-        }
+        await this.pushDataDiff(name, diff, socket);
     }
 
-    public async pushDataDiff(name: string, diff: API.DataDiff[], socket?: SocketIO.Socket) {
-        const encdiff = API.DataRepo.encodeArray(diff);
-
-        await this._pushDataDiff(name, encdiff);
+    public async pushDataDiff(name: string, diff: API.DataDiff[] | undefined, socket?: SocketIO.Socket) {
+        if (diff && diff.length > 0) {
+            await this._pushDataDiff(name, API.DataRepo.encodeArray(diff));
+        }
     }
 
     public async lockData(name: string, socket?: SocketIO.Socket) {
@@ -218,6 +216,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
     protected async _pushDataDiff(name: string, encdiff: Buffer[], socket?: SocketIO.Socket) {
         let multi = this._batchedDiffs[name];
+
         if (!multi) {
             multi = this._batchedDiffs[name] = this.redisClient.batch();
         }
