@@ -104,4 +104,16 @@ export class UsersEndpoint extends Endpoint implements API.UsersAPI {
 
         return success;
     }
+
+    protected async _uninitializeClient(socket?: SocketIO.Socket) {
+        const success = await super._uninitializeClient(socket);
+
+        if (success) {
+            if (socket) {
+                await this.removeSelf(socket);
+            }
+        }
+
+        return success;
+    }
 }

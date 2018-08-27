@@ -9,4 +9,5 @@ export declare class UsersEndpoint extends Endpoint implements API.UsersAPI {
     addSelf(user: API.UserData, socket?: SocketIO.Socket): Promise<boolean>;
     removeSelf(socket?: SocketIO.Socket): Promise<boolean>;
     protected _initializeClient(socket?: SocketIO.Socket): Promise<boolean>;
+    protected _uninitializeClient(socket?: SocketIO.Socket): Promise<boolean>;
 }

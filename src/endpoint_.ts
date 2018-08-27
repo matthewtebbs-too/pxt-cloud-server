@@ -11,8 +11,6 @@ import * as SocketIO from 'socket.io';
 
 import * as API from 'pxt-cloud-api';
 
-const debug = require('debug')('pxt-cloud:endpoint');
-
 export type Callback<T> = (error: Error | null, reply?: T) => void;
 
 // tslint:disable-next-line:variable-name
@@ -103,8 +101,11 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         this._socketNamespace = socketNamespace;
 
         this._endpoints = endpoints;
+
         this._redisClient = redisClient;
+
         this._redlock = new Redlock([redisClient]);
+        this._redlock.on('clientError', error => this._debug(`redlock client error (${error})`));
 
         socketNamespace.on('connect', (socket: SocketIO.Socket) => {
             this._debug(`${socket.id} client connected from ${socket.handshake.address}`);
@@ -125,18 +126,26 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         this._socketNamespace = null;
     }
 
-    protected async _initializeClient(socket?: SocketIO.Socket) {
-        return true;
-    }
-
     protected _isInitialized(socket?: SocketIO.Socket) {
         return !socket || !socket.connected || (socket as any).initialized;
     }
 
-    protected async _ensureInitializedClient(socket?: SocketIO.Socket) {
-        if (!this._isInitialized(socket)) {
-            (socket as any).initialized = await this._initializeClient(socket);
+    protected async _initializeClient(socket?: SocketIO.Socket) {
+        if (this._isInitialized(socket)) {
+            return false;
         }
+
+        (socket as any).initialized = true;
+        return true;
+    }
+
+    protected async _uninitializeClient(socket?: SocketIO.Socket) {
+        if (!this._isInitialized(socket)) {
+            return false;
+        }
+
+        (socket as any).initialized = false;
+        return true;
     }
 
     protected async _notifyEvent(event: string, ...args_: any[]) {
@@ -145,7 +154,7 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         this.emit(event, ...args);
 
         if (socket) {
-            await this._ensureInitializedClient(socket);
+            await this._initializeClient(socket);
 
             socket.broadcast.emit(event, ...args);
         }
@@ -157,7 +166,7 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         try {
             lock = this._redlockLocks[name] = await this._redlock.lock(EndpointDBKeys.locks(name), ttl || 1000);
         } catch (error) {
-            debug(error);
+            this._debug(error);
         }
 
         return lock;
@@ -176,11 +185,11 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
     }
 
     protected _onClientConnect(socket: SocketIO.Socket) {
-        setTimeout(async () => await this._ensureInitializedClient(socket));
+        setTimeout(async () => await this._initializeClient(socket));
     }
 
     protected _onClientDisconnect(socket: SocketIO.Socket) {
-        /* do nothing */
+        setTimeout(async () => await this._uninitializeClient(socket));
     }
 }
 

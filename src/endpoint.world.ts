@@ -121,11 +121,10 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     protected async _pullAllData(socket?: SocketIO.Socket) {
-        // const datakeys = await new Promise<string[]>((resolve, reject) => {
-        //     return this.redisClient.keys(WorldDBKeys.data('*'), Endpoint._promiseHandler(resolve, reject));
-        // });
+        const datakeys = await new Promise<string[]>((resolve, reject) => {
+            return this.redisClient.keys(WorldDBKeys.data('*'), Endpoint._promiseHandler(resolve, reject));
+        });
 
-        const datakeys = ['hack:globals'];
         const tencdata: Array<API.Tagged<Buffer>> = [];
 
         for (const datakey of datakeys) {
@@ -217,6 +216,8 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     protected async _pushDataDiff(name: string, encdiff: Buffer[], socket?: SocketIO.Socket) {
         let multi = this._batchedDiffs[name];
 
+        const initializePullData = !multi;
+
         if (!multi) {
             multi = this._batchedDiffs[name] = this.redisClient.batch();
         }
@@ -225,12 +226,12 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
 
         encdiff.forEach(d => multi.xadd(datadiffKey, '*', EndpointDBKeys.blob, d.toString('binary')));
 
-        if (multi.queue.length >= WorldEndpoint.maxExecBatchedDiffs) {
+        if (initializePullData || (multi.queue.length >= WorldEndpoint.maxExecBatchedDiffs)) {
             await new Promise((resolve, reject) => multi.exec(Endpoint._promiseHandler(resolve, reject)));
 
             const lenDiff = await new Promise((resolve, reject) => this.redisClient.xlen(datadiffKey, Endpoint._promiseHandler(resolve, reject)));
 
-            if (lenDiff >= (WorldEndpoint.maxExecBatchedDiffs * WorldEndpoint.factorStreamDiffs)) {
+            if (initializePullData || (lenDiff >= (WorldEndpoint.maxExecBatchedDiffs * WorldEndpoint.factorStreamDiffs))) {
                 /* ignore return value */ await this._pullData(name);
             }
         }
