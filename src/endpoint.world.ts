@@ -62,21 +62,39 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         return API.DataRepo.decode(await this._pullData(name, socket));
     }
 
-    public async pushAllData(socket?: SocketIO.Socket) {
+    public async pushAllData(
+        unlock: boolean = false,
+        socket?: SocketIO.Socket,
+    ) {
         this._datarepo.names.forEach(async (name: string) =>
-            await this.pushData(name, socket),
+            await this.pushData(name, false, socket),
         );
+
+        if (unlock) {
+            await this.unlockData('*');
+        }
     }
 
-    public async pushData(name: string, socket?: SocketIO.Socket) {
+    public async pushData(
+        name: string,
+        unlock: boolean = false,
+        socket?: SocketIO.Socket,
+    ) {
         const diff = this._datarepo.calcDataDiff(name);
 
-        await this.pushDataDiff(name, diff, socket);
+        await this.pushDataDiff(name, diff, unlock, socket);
     }
 
-    public async pushDataDiff(name: string, diff: API.DataDiff[] | undefined, socket?: SocketIO.Socket) {
+    public async pushDataDiff(
+        name: string,
+        diff: API.DataDiff[] | undefined,
+        unlock: boolean = false,
+        socket?: SocketIO.Socket,
+    ) {
         if (diff && diff.length > 0) {
-            await this._pushDataDiff(name, API.DataRepo.encodeArray(diff));
+            await this._pushDataDiff(name, API.DataRepo.encodeArray(diff), unlock, socket);
+        } else if (unlock) {
+            await this.unlockData(name);
         }
     }
 

@@ -18,9 +18,9 @@ export declare class WorldEndpoint extends Endpoint implements API.WorldAPI {
         data: any;
     }[]>;
     pullData(name: string, socket?: SocketIO.Socket): Promise<any>;
-    pushAllData(socket?: SocketIO.Socket): Promise<void>;
-    pushData(name: string, socket?: SocketIO.Socket): Promise<void>;
-    pushDataDiff(name: string, diff: API.DataDiff[] | undefined, socket?: SocketIO.Socket): Promise<void>;
+    pushAllData(unlock?: boolean, socket?: SocketIO.Socket): Promise<void>;
+    pushData(name: string, unlock?: boolean, socket?: SocketIO.Socket): Promise<void>;
+    pushDataDiff(name: string, diff: API.DataDiff[] | undefined, unlock?: boolean, socket?: SocketIO.Socket): Promise<void>;
     lockData(name: string, socket?: SocketIO.Socket): Promise<boolean>;
     unlockData(name: string, socket?: SocketIO.Socket): Promise<boolean>;
     protected _initializeClient(socket?: SocketIO.Socket): Promise<boolean>;
