@@ -100,14 +100,14 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                     .on(API.Events.WorldPullData, (name, cb) =>
                         Endpoint._fulfillReceivedEvent(this._pullData(name, socket), cb))
 
-                    .on(API.Events.WorldPushAllData, (tencdata, cb) =>
-                        Endpoint._fulfillReceivedEvent(this._pushAllData(tencdata, socket), cb))
+                    .on(API.Events.WorldPushAllData, ({ tencdata, unlock }, cb) =>
+                        Endpoint._fulfillReceivedEvent(this._pushAllData(tencdata, unlock, socket), cb))
 
-                    .on(API.Events.WorldPushData, ({ name, encdata }, cb) =>
-                        Endpoint._fulfillReceivedEvent(this._pushData(name, encdata, socket), cb))
+                    .on(API.Events.WorldPushData, ({ name, encdata, unlock }, cb) =>
+                        Endpoint._fulfillReceivedEvent(this._pushData(name, encdata, unlock, socket), cb))
 
-                    .on(API.Events.WorldPushDataDiff, ({ name, encdiff }, cb) =>
-                        Endpoint._fulfillReceivedEvent(this._pushDataDiff(name, encdiff, socket), cb))
+                    .on(API.Events.WorldPushDataDiff, ({ name, encdiff, unlock }, cb) =>
+                        Endpoint._fulfillReceivedEvent(this._pushDataDiff(name, encdiff, unlock, socket), cb))
 
                     .on(API.Events.WorldLockData, (name, cb) =>
                         Endpoint._fulfillReceivedEvent(this._lockData(name, socket), cb))
@@ -159,7 +159,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
             current = API.DataRepo.applyDataDiff(current, API.DataRepo.decode(encdiff));
             encdata = API.DataRepo.encode(current) as Buffer;
 
-            await this._pushData(name, encdata, socket);
+            await this._pushData(name, encdata, false, socket);
 
             await this._deleteAllPushedDiff(name);
         }
@@ -195,13 +195,26 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         );
     }
 
-    protected async _pushAllData(tencdata: Array<API.Tagged<Buffer>>, socket?: SocketIO.Socket) {
+    protected async _pushAllData(
+        tencdata: Array<API.Tagged<Buffer>>,
+        unlock: boolean = false,
+        socket?: SocketIO.Socket,
+    ) {
         tencdata.forEach(async ({ name, data /* encdata */ }) =>
-            await this._pushData(name, data, socket),
+            await this._pushData(name, data, false, socket),
         );
+
+        if (unlock) {
+            await this._unlockData('*');
+        }
     }
 
-    protected async _pushData(name: string, encdata: Buffer, socket?: SocketIO.Socket) {
+    protected async _pushData(
+        name: string,
+        encdata: Buffer,
+        unlock: boolean = false,
+        socket?: SocketIO.Socket,
+    ) {
         await new Promise((resolve, reject) =>
             this.redisClient.set(
                 WorldDBKeys.data(name),
@@ -211,9 +224,18 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
                 Endpoint._promiseHandler(resolve, reject),
             ),
         );
+
+        if (unlock) {
+            await this._unlockData(name);
+        }
     }
 
-    protected async _pushDataDiff(name: string, encdiff: Buffer[], socket?: SocketIO.Socket) {
+    protected async _pushDataDiff(
+        name: string,
+        encdiff: Buffer[],
+        unlock: boolean = false,
+        socket?: SocketIO.Socket,
+    ) {
         let multi = this._batchedDiffs[name];
 
         const initializePullData = !multi;
