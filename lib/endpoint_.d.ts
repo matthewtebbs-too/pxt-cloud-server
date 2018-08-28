@@ -27,17 +27,17 @@ export declare abstract class Endpoint extends EventEmitter implements API.Commo
     private _redlockLocks;
     protected readonly endpoints: Endpoints;
     protected readonly redisClient: Redis.RedisClient;
-    protected readonly redlock: Redlock;
+    protected readonly redlock: Redlock | null;
     constructor(endpoints: Endpoints, redisClient: Redis.RedisClient, socketServer: SocketIO.Server, nsp?: string);
-    dispose(): void;
+    dispose(): Promise<void>;
     protected _isInitialized(socket?: SocketIO.Socket): any;
     protected _initializeClient(socket?: SocketIO.Socket): Promise<boolean>;
     protected _uninitializeClient(socket?: SocketIO.Socket): Promise<boolean>;
     protected _notifyEvent(event: string, ...args_: any[]): Promise<void>;
     protected _resourceLock(name: string, ttl?: number): Promise<Redlock.Lock | undefined>;
     protected _resourceUnlock(name: string): Promise<Redlock.Lock>;
-    protected _onClientConnect(socket: SocketIO.Socket): void;
-    protected _onClientDisconnect(socket: SocketIO.Socket): void;
+    protected _onClientConnect(socket: SocketIO.Socket): Promise<void>;
+    protected _onClientDisconnect(socket: SocketIO.Socket): Promise<void>;
 }
 export declare type Endpoints = {
     [E in keyof API.PublicAPI]: (Endpoint & API.PublicAPI[E]) | null;

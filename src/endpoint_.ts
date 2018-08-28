@@ -74,7 +74,8 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
     private _socketNamespace: SocketIO.Namespace | null = null;
     private _endpoints: Endpoints;
     private _redisClient: Redis.RedisClient;
-    private _redlock: Redlock;
+
+    private _redlock: Redlock | null = null;
     private _redlockLocks: { [name: string]: Redlock.Lock } = {};
 
     protected get endpoints() {
@@ -97,23 +98,31 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
     ) {
         super();
 
-        const socketNamespace = socketServer.of(`pxt-cloud${nsp ? `/${nsp}` : ''}`);
-        this._socketNamespace = socketNamespace;
-
         this._endpoints = endpoints;
 
         this._redisClient = redisClient;
 
-        this._redlock = new Redlock([redisClient]);
-        this._redlock.on('clientError', error => this._debug(`redlock client error (${error})`));
+        const redlock = new Redlock([redisClient]);
+        this._redlock = redlock;
 
-        socketNamespace.on('connect', (socket: SocketIO.Socket) => {
+        redlock.on('clientError', error => {
+            if (this._redlock) {
+                this._debug(`redlock client error (${error})`);
+            }
+        });
+
+        const socketNamespace = socketServer.of(`pxt-cloud${nsp ? `/${nsp}` : ''}`);
+        this._socketNamespace = socketNamespace;
+
+        socketNamespace.on('connect', async (socket: SocketIO.Socket) => {
             this._debug(`${socket.id} client connected from ${socket.handshake.address}`);
-            this._onClientConnect(socket);
 
-            socket.on('disconnect', reason => {
+            await this._onClientConnect(socket);
+
+            socket.on('disconnecting', async reason => {
                 this._debug(`${socket.id} client disconnected from ${socket.handshake.address} (${reason})`);
-                this._onClientDisconnect(socket);
+
+                await this._onClientDisconnect(socket);
             });
         });
 
@@ -122,7 +131,15 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         });
     }
 
-    public dispose() {
+    public async dispose() {
+        const redlock = this._redlock;
+
+        if (redlock) {
+            this._redlock = null;
+
+            (redlock as any).quit();
+        }
+
         this._socketNamespace = null;
     }
 
@@ -161,12 +178,18 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
     }
 
     protected async _resourceLock(name: string, ttl?: number) {
+        if (!this._redlock) {
+            return;
+        }
+
         let lock;
 
         try {
             lock = this._redlockLocks[name] = await this._redlock.lock(EndpointDBKeys.locks(name), ttl || 1000);
         } catch (error) {
-            this._debug(error);
+            if (this._redlock) {
+                this._debug(error);
+            }
         }
 
         return lock;
@@ -184,12 +207,12 @@ export abstract class Endpoint extends EventEmitter implements API.CommonAPI {
         return lock;
     }
 
-    protected _onClientConnect(socket: SocketIO.Socket) {
-        setTimeout(async () => await this._initializeClient(socket));
+    protected async _onClientConnect(socket: SocketIO.Socket) {
+        await this._initializeClient(socket);
     }
 
-    protected _onClientDisconnect(socket: SocketIO.Socket) {
-        setTimeout(async () => await this._uninitializeClient(socket));
+    protected async _onClientDisconnect(socket: SocketIO.Socket) {
+        await this._uninitializeClient(socket);
     }
 }
 

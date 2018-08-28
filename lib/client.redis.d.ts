@@ -6,5 +6,5 @@ export declare class RedisClient extends EventEmitter {
     readonly client: Redis.RedisClient | null;
     protected _redis: Redis.RedisClient | null;
     connect(initialized: () => void, port_?: number, host_?: string): PromiseLike<this>;
-    dispose(): void;
+    dispose(): Promise<void>;
 }

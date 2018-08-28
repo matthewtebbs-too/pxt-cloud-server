@@ -85,7 +85,6 @@ class Server {
             };
 
             const httpServer = (Https.createServer(options, Server._handler) as any as HttpServerWithShutdown).withShutdown();
-
             this._httpServer = httpServer;
 
             httpServer.listen(port_, host_, () => {
@@ -105,31 +104,46 @@ class Server {
                     .then(() => resolve(this), reject); /* connect success */
             });
 
-            httpServer.on('close', () => debug('closed'));
+            httpServer.on('close', () => {
+                debug('closed');
+
+                this._httpServer = null;
+            });
 
             httpServer.on('error', error => {
                 debug(`${error.message}\n`);
+
                 reject(error);
             });
          });
     }
 
-    public dispose() {
-        (Object.keys(this._endpoints) as Array<keyof API.PublicAPI>).forEach(name => this._disposeEndpoint(name));
+    public async dispose() {
+        const namesEndpoints = Object.keys(this._endpoints) as Array<keyof API.PublicAPI>;
+        namesEndpoints.forEach(async name => await this._disposeEndpoint(name));
 
-        if (this._socketServer) {
-            this._socketServer.dispose();
+        const socketServer = this._socketServer;
+
+        if (socketServer) {
             this._socketServer = null;
+
+            await socketServer.dispose();
         }
 
-        if (this._redisClient) {
-            this._redisClient.dispose();
-            this._redisClient = null;
-        }
+        const httpServer = this._httpServer;
 
-        if (this._httpServer) {
-            this._httpServer.shutdown();
+        if (httpServer) {
             this._httpServer = null;
+
+            await new Promise(resolve => httpServer.shutdown(resolve));
+        }
+
+        const redisClient = this._redisClient;
+
+        if (redisClient) {
+            this._redisClient = null;
+
+            await redisClient.dispose();
         }
     }
 
@@ -142,29 +156,33 @@ class Server {
         }
 
         (this._endpoints[name] as Endpoint) = new ctor(this._endpoints, redisClient, socketServer);
-        debug(`created '${name}' API endpoint`);
+
+        debug(`created '${name}' endpoint`);
 
         return true;
     }
 
-    protected _disposeEndpoint<T extends keyof API.PublicAPI>(name: T) {
+    protected async _disposeEndpoint<T extends keyof API.PublicAPI>(name: T) {
         if (name in this._endpoints) {
             const endpoint = this._endpoints[name];
 
             if (endpoint) {
-                endpoint.dispose();
                 this._endpoints[name] = null;
+
+                await endpoint.dispose();
+
+                debug(`disposed '${name}' endpoint`);
             }
         }
     }
 }
 
-export function startServer(port?: number, host?: string): PromiseLike<API.PublicAPI> {
+export async function startServer(port?: number, host?: string) {
     return Server.singleton.start(port, host).then(server => ({ ...server.publicAPI }));
 }
 
-export function disposeServer() {
-    Server.singleton.dispose();
+export async function disposeServer() {
+    await Server.singleton.dispose();
 }
 
-process.on('SIGINT', disposeServer);
+process.on('SIGINT', async () => await disposeServer());

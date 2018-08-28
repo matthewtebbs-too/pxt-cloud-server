@@ -47,42 +47,53 @@ export class RedisClient extends EventEmitter {
         this.dispose();
 
         return new Promise((resolve, reject) => {
-            this._redis = new Redis.RedisClient({
+            const redis = new Redis.RedisClient({
                 host: host_,
                 port: port_,
 
                 retry_strategy: RedisClient._retrystrategy,
             });
+            this._redis = redis;
 
             initialized();
 
-            this._redis.on('connect', () => debug(`connected`));
+            redis.on('connect', () => debug(`connected`));
 
-            this._redis.on('ready', () => {
+            redis.on('ready', () => {
                 debug(`ready`);
+
                 resolve(this);
             });
 
-            this._redis.on('reconnecting', (stats) => {
+            redis.on('reconnecting', (stats) => {
                 debug(`reconnecting with attempt ${stats.attempt} after ${stats.delay} msec`);
+
                 if (stats.error) {
                     debug(`[${stats.error.message}]\n`);
                 }
             });
 
-            this._redis.on('end', () => debug(`ended`));
+            redis.on('end', () => {
+                debug(`ended`);
+
+                this._redis = null;
+            });
 
             this._redis.on('error', error => {
                 debug(error.message);
+
                 reject(error);
             });
         });
     }
 
-    public dispose() {
-        if (this._redis) {
-            this._redis.quit();
+    public async dispose() {
+        const redis = this._redis;
+
+        if (redis) {
             this._redis = null;
+
+            await new Promise(resolve => redis.quit(() => resolve()));
         }
     }
 }

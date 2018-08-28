@@ -17,17 +17,25 @@ export class SocketServer {
     protected _socketio: SocketIO.Server | null = null;
 
     constructor(server: any) {
-        this._socketio = SocketIO(server);
+        const socketio = SocketIO(server);
+        this._socketio = socketio;
 
-        if (this._socketio) {
+        if (socketio) {
             debug(`listening`);
         }
     }
 
-    public dispose() {
-        if (this._socketio) {
-            this._socketio.close((() => debug(`closed`)));
+    public async dispose() {
+        const socketio = this._socketio;
+
+        if (socketio) {
             this._socketio = null;
+
+            await new Promise(resolve => socketio.close(() => {
+                debug('closed');
+
+                resolve();
+            }));
         }
     }
 }
