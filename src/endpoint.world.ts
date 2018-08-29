@@ -191,7 +191,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
             let current = encdata ? API.DataRepo.decode(encdata) : {};
 
             current = API.DataRepo.applyDataDiff(current, API.DataRepo.decode(encdiff));
-            encdata = API.DataRepo.encode(current) as Buffer;
+            encdata = API.DataRepo.encode(current);
 
             await this._pushData(name, encdata, false, socket);
 
