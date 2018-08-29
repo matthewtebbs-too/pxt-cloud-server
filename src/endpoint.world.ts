@@ -277,6 +277,10 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         }
 
         await this._notifyEvent(API.Events.WorldPushDataDiff, { name, encdiff }, socket);
+
+        if (unlock) {
+            await this._unlockData(name);
+        }
     }
 
     protected async _deleteAllPushedDiff(name: string) {
