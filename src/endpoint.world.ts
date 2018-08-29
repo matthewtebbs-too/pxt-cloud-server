@@ -40,6 +40,10 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         super(endpoints, redisClient, socketServer, 'world');
     }
 
+    public async dispose() {
+        await this._flushAllBatchedDiffs(true);
+    }
+
     public async syncDataSources() {
         return true;
     }
@@ -106,6 +110,18 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         return await this._unlockData(name, socket);
     }
 
+    protected _getBatchedDiff(name: string) {
+        let multi = this._batchedDiffs[name];
+
+        const batchExisted = !!multi;
+
+        if (!batchExisted) {
+            multi = this._batchedDiffs[name] = this.redisClient.batch();
+        }
+
+        return { multi, batchExisted };
+    }
+
     protected async _initializeClient(socket?: SocketIO.Socket) {
         const success = await super._initializeClient(socket);
 
@@ -155,7 +171,7 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
     }
 
     protected async _pullData(name: string, socket?: SocketIO.Socket) {
-        const multi = this._batchedDiffs[name];
+        const { multi } = this._getBatchedDiff(name);
 
         if (multi) {
             await new Promise((resolve, reject) => multi.exec(Endpoint._promiseHandler(resolve, reject)));
@@ -254,32 +270,40 @@ export class WorldEndpoint extends Endpoint implements API.WorldAPI {
         unlock: boolean = false,
         socket?: SocketIO.Socket,
     ) {
-        let multi = this._batchedDiffs[name];
-
-        const initializePullData = !multi;
-
-        if (!multi) {
-            multi = this._batchedDiffs[name] = this.redisClient.batch();
-        }
+        const { multi, batchExisted } = this._getBatchedDiff(name);
 
         const datadiffKey = WorldDBKeys.dataDiff(name);
 
         encdiff.forEach(d => multi.xadd(datadiffKey, '*', EndpointDBKeys.blob, d.toString('binary')));
 
-        if (initializePullData || (multi.queue.length >= WorldEndpoint.maxExecBatchedDiffs)) {
-            await new Promise((resolve, reject) => multi.exec(Endpoint._promiseHandler(resolve, reject)));
-
-            const lenDiff = await new Promise((resolve, reject) => this.redisClient.xlen(datadiffKey, Endpoint._promiseHandler(resolve, reject)));
-
-            if (initializePullData || (lenDiff >= (WorldEndpoint.maxExecBatchedDiffs * WorldEndpoint.factorStreamDiffs))) {
-                /* ignore return value */ await this._pullData(name);
-            }
-        }
+        await this._flushBatchedDiffs(name, !batchExisted);
 
         await this._notifyEvent(API.Events.WorldPushDataDiff, { name, encdiff }, socket);
 
         if (unlock) {
             await this._unlockData(name);
+        }
+    }
+
+    protected async _flushAllBatchedDiffs(forceFlush: boolean = false) {
+        this._datarepo.names.forEach(async (name: string) =>
+            await this._flushBatchedDiffs(name),
+        );
+    }
+
+    protected async _flushBatchedDiffs(name: string, forceFlush: boolean = false) {
+        const { multi } = this._getBatchedDiff(name);
+
+        const datadiffKey = WorldDBKeys.dataDiff(name);
+
+        if (forceFlush || (multi.queue.length >= WorldEndpoint.maxExecBatchedDiffs)) {
+            await new Promise((resolve, reject) => multi.exec(Endpoint._promiseHandler(resolve, reject)));
+
+            const lenDiff = await new Promise((resolve, reject) => this.redisClient.xlen(datadiffKey, Endpoint._promiseHandler(resolve, reject)));
+
+            if (forceFlush || (lenDiff >= (WorldEndpoint.maxExecBatchedDiffs * WorldEndpoint.factorStreamDiffs))) {
+                /* ignore return value */ await this._pullData(name);
+            }
         }
     }
 
