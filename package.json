@@ -20,7 +20,7 @@
   "homepage": "https://github.com/muddytummy/pxt-cloud-server#readme",
   "dependencies": {
     "@types/double-ended-queue": "^2.1.0",
-    "@types/node": "^8.10.28",
+    "@types/node": "^8.10.29",
     "@types/redis": "^2.8.6",
     "@types/redlock": "^3.0.2",
     "@types/socket.io": "^1.4.38",
@@ -42,7 +42,7 @@
     "rollup-plugin-node-resolve": "^3.3.0",
     "rollup-stream": "^1.24.1",
     "tslint": "^5.11.0",
-    "typescript": "^3.0.1",
+    "typescript": "^3.0.3",
     "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0"
   },
